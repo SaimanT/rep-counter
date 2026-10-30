@@ -288,18 +288,61 @@ def offline(ctx):
         ctx.set_offline(False)
 
 
-@test("Phone layout of {0[h1]}")
+@test("Phone layout and buttons on {0[h1]}")
 def mobile(page, p):
     p.goto(url_of(page))
     overflow = p.evaluate("document.documentElement.scrollWidth - innerWidth")
     assert overflow <= 0, f"horizontal scroll by {overflow}px"
     assert not p.is_visible(".keys"), "keyboard hints should be hidden on touch screens"
+    key = "rep-counter-v1" + (":" + page["slug"] if page["slug"] else "")
+    for n in (88, 888):  # widest 2- and 3-digit numbers must fit on screen
+        p.evaluate("([k, n]) => localStorage.setItem(k, JSON.stringify({count: n}))", [key, n])
+        p.reload()
+        box = p.locator(".count").bounding_box()
+        width = p.evaluate("() => { const r = document.createRange(); r.selectNodeContents(document.getElementById('count')); return r.getBoundingClientRect().width; }")
+        assert width <= 375 - 16, f"{n} is {width:.0f}px wide, wider than the phone screen"
+        assert p.evaluate("document.documentElement.scrollWidth - innerWidth") <= 0, f"{n} causes horizontal scroll"
+    p.evaluate("k => localStorage.removeItem(k)", key)
+    p.reload()
     box = p.locator(".count").bounding_box()
     assert box["height"] > 150, f"count digits too small: {box['height']:.0f}px"
     assert p.locator("#app").bounding_box()["height"] <= 812 + 1, "counter screen taller than phone"
     p.tap(".count")
-    p.tap("#app", position={"x": 30, "y": 600})
-    eq(state(p)["count"], 2, "taps count on phone")
+    p.tap(".info")
+    p.tap(".count")
+    eq(state(p)["count"], 3, "taps count on phone")
+
+    # every on-screen button is visible, big enough and above the hint line
+    help_top = p.locator(".help").bounding_box()["y"]
+    for btn in p.locator(".controls button:visible").all():
+        b = btn.bounding_box()
+        assert b["height"] >= 44, f"button {btn.inner_text()!r} too small to tap: {b['height']:.0f}px"
+        assert b["y"] + b["height"] <= help_top, f"button {btn.inner_text()!r} overlaps the hint line"
+
+    p.tap("#minus")
+    eq(state(p)["count"], 2, "−1 button")
+    p.tap("#finish")
+    s = state(p)
+    eq(s["count"], 0, "Подход button resets count")
+    assert "Подходы: 2" in s["sets"], f"Подход button records the set: {s['sets']!r}"
+    p.tap("#finish")
+    eq(state(p)["sets"].count("·"), 0, "Подход with 0 must not add an empty set")
+    p.tap(".count")
+    p.once("dialog", lambda d: d.dismiss())
+    p.tap("#reset")
+    eq(state(p)["count"], 1, "Сброс cancelled keeps count")
+    p.once("dialog", lambda d: d.accept())
+    p.tap("#reset")
+    s = state(p)
+    eq((s["count"], s["sets"]), (0, ""), "Сброс confirmed resets")
+
+    eq(p.get_attribute("#sound", "aria-pressed"), "true", "sound on by default")
+    p.tap("#sound")
+    p.reload()
+    eq(p.get_attribute("#sound", "aria-pressed"), "false", "sound off is remembered")
+    p.tap("#sound")
+    eq(p.get_attribute("#sound", "aria-pressed"), "true", "sound back on")
+    eq(state(p)["count"], 0, "control buttons must not count as reps")
 
 
 def main():

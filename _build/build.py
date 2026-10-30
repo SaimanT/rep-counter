@@ -29,7 +29,7 @@ SHORT_FAQ = [
 
 CONTROLS = """
   <p><b>Управление:</b> пробел — +1, Backspace — −1, Enter — закончить подход, R — сбросить.
-  На телефоне — касание экрана. <a href="{root}#about">Подробнее о счётчике</a>.</p>"""
+  На телефоне — касание экрана и кнопки под счётчиком. <a href="{root}#about">Подробнее о счётчике</a>.</p>"""
 
 HOW_TO = """
   <h2>Как пользоваться</h2>
@@ -41,6 +41,8 @@ HOW_TO = """
       а внизу появится итог, например: «Подходы: 20 · 20 · 18 — всего 58».</li>
     <li><b>План выполнен</b> — экран станет зелёным и прозвучит сигнал.</li>
     <li><b>F</b> включает полноэкранный режим, <b>R</b> сбрасывает всю тренировку.</li>
+    <li><b>На телефоне</b> всё то же есть кнопками под счётчиком: −1, «Подход», «Сброс»,
+      звук и вибрация, полный экран. Пока страница открыта, экран не гаснет.</li>
   </ul>"""
 
 PAGES = [
@@ -314,7 +316,11 @@ TEMPLATE = """<!doctype html>
 <section id="app" aria-label="Счётчик">
   <div class="top">
     <h1>{h1}</h1>
-    <button id="install" hidden>Установить приложение</button>
+    <div class="tools">
+      <button id="install" hidden>Установить приложение</button>
+      <button id="sound" class="icon" aria-label="Звук и вибрация" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Полный экран">⛶</button>
+    </div>
   </div>
   <div class="plan">
     <label for="plan">План:</label>
@@ -330,6 +336,11 @@ TEMPLATE = """<!doctype html>
   </div>
   <div class="progress"><div id="bar"></div></div>
   <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Убрать одно повторение">−1</button>
+    <button id="finish">✓ Подход</button>
+    <button id="reset">Сброс</button>
+  </div>
   <div class="help">
     <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
     <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>

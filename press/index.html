@@ -12,7 +12,7 @@
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" href="../icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../icon-192.png">
-<link rel="stylesheet" href="../app.css?v=860b0c9b">
+<link rel="stylesheet" href="../app.css?v=0515e229">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:url" content="https://saimant.github.io/rep-counter/press/">
@@ -94,7 +94,11 @@
 <section id="app" aria-label="Счётчик">
   <div class="top">
     <h1>Счётчик упражнений на пресс</h1>
-    <button id="install" hidden>Установить приложение</button>
+    <div class="tools">
+      <button id="install" hidden>Установить приложение</button>
+      <button id="sound" class="icon" aria-label="Звук и вибрация" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Полный экран">⛶</button>
+    </div>
   </div>
   <div class="plan">
     <label for="plan">План:</label>
@@ -110,6 +114,11 @@
   </div>
   <div class="progress"><div id="bar"></div></div>
   <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Убрать одно повторение">−1</button>
+    <button id="finish">✓ Подход</button>
+    <button id="reset">Сброс</button>
+  </div>
   <div class="help">
     <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
     <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>
@@ -124,7 +133,7 @@
   записывайте отдельные подходы клавишей Enter.</p>
 
   <p><b>Управление:</b> пробел — +1, Backspace — −1, Enter — закончить подход, R — сбросить.
-  На телефоне — касание экрана. <a href="../#about">Подробнее о счётчике</a>.</p>
+  На телефоне — касание экрана и кнопки под счётчиком. <a href="../#about">Подробнее о счётчике</a>.</p>
   <h2>Сколько делать</h2>
   <ul>
     <li><b>Скручивания:</b> 3 подхода по 15–30 повторений.</li>
@@ -156,6 +165,6 @@
   </ul>
 </main>
 <footer><a href="../">Счётчик повторений</a> · бесплатно и без регистрации</footer>
-<script src="../app.js?v=bcb292b1"></script>
+<script src="../app.js?v=a4e795af"></script>
 </body>
 </html>

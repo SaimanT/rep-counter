@@ -17,6 +17,8 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 .top h1 { margin: 0; font-size: 16px; font-weight: 600; color: var(--muted); }
 .top button { font: inherit; font-size: 14px; color: var(--fg); background: var(--bar);
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.tools { display: flex; gap: 8px; }
+.top .icon { width: 44px; height: 44px; padding: 0; font-size: 20px; }
 /* The huge digits' glyphs overflow upward; keep controls above them so clicks reach them */
 .top, .plan, .help { z-index: 1; }
 .plan { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px;
@@ -29,6 +31,8 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 .presets button:hover { color: var(--fg); }
 .count { font-size: min(45vw, 48vh); font-weight: 800; line-height: 1; margin: 2vh 0 1vh;
   font-variant-numeric: tabular-nums; }
+/* Short numbers can be much bigger on narrow screens without overflowing */
+.count[data-digits="1"], .count[data-digits="2"] { font-size: min(70vw, 48vh); }
 .info { font-size: clamp(20px, 4vw, 42px); color: var(--muted); text-align: center; }
 .info b { color: var(--fg); }
 .left b { color: var(--accent); }
@@ -37,6 +41,13 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 .progress div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 #app.finished .progress div { background: var(--done); }
 .sets { font-size: 18px; color: var(--muted); min-height: 26px; text-align: center; }
+.controls { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 10px; margin-top: 18px; }
+.controls button { font: inherit; font-size: 18px; min-height: 48px; min-width: 56px; padding: 0 16px;
+  color: var(--fg); background: var(--bar); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.controls button:hover { border-color: var(--muted); }
+.controls button:active { background: #2f343a; }
+#sound[aria-pressed="false"] { color: var(--muted); }
 .help { position: absolute; bottom: 12px; left: 0; right: 0; font-size: 13px; color: #5c636c;
   text-align: center; padding: 0 16px; line-height: 1.9; }
 .help a { color: var(--muted); }

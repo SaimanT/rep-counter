@@ -2,7 +2,7 @@
   // Each page keeps its own state: <body data-slug="otzhimaniya" data-default-plan="20" data-root="../">
   const { slug = '', defaultPlan = '10', root = './' } = document.body.dataset;
   const KEY = 'rep-counter-v1' + (slug ? ':' + slug : '');
-  let state = { plan: +defaultPlan, count: 0, sets: [] };
+  let state = { plan: +defaultPlan, count: 0, sets: [], sound: true };
   try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
 
   const $ = id => document.getElementById(id);
@@ -13,6 +13,7 @@
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
   function beep(freq = 880, ms = 120) {
+    if (!state.sound) return;
     try {
       const ctx = beep.ctx || (beep.ctx = new AudioContext());
       const o = ctx.createOscillator(), g = ctx.createGain();
@@ -23,9 +24,14 @@
     } catch (e) {}
   }
 
+  function vibrate(pattern) {
+    if (state.sound && navigator.vibrate) navigator.vibrate(pattern);
+  }
+
   function render(bump) {
     const left = Math.max(state.plan - state.count, 0);
     $('count').textContent = state.count;
+    $('count').dataset.digits = String(state.count).length;
     $('done').textContent = state.count;
     $('total').textContent = state.plan;
     $('left').textContent = left;
@@ -35,18 +41,32 @@
     $('sets').textContent = state.sets.length
       ? `Подходы: ${state.sets.join(' · ')}  —  всего за тренировку: ${sum + state.count}`
       : '';
+    $('sound').setAttribute('aria-pressed', state.sound);
+    $('sound').textContent = state.sound ? '🔊' : '🔇';
     if (bump) { const c = $('count'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
     save();
   }
 
   function add(n) {
     state.count = Math.max(state.count + n, 0);
-    if (n > 0) beep(state.count === state.plan ? 1320 : 880, state.count === state.plan ? 400 : 80);
+    if (n > 0) {
+      const reached = state.count === state.plan;
+      beep(reached ? 1320 : 880, reached ? 400 : 80);
+      vibrate(reached ? [80, 60, 80, 60, 200] : 25);
+    }
     render(n > 0);
   }
 
   function finishSet() {
     if (state.count > 0) { state.sets.push(state.count); state.count = 0; render(); }
+  }
+
+  function reset() {
+    if (confirm('Сбросить счётчик и подходы?')) { state.count = 0; state.sets = []; render(); }
+  }
+
+  function toggleFullscreen() {
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
   }
 
   function setPlan(v) { if (v > 0) { state.plan = v; planInput.value = v; render(); } }
@@ -57,25 +77,47 @@
   document.querySelectorAll('[data-plan]').forEach(b =>
     b.addEventListener('click', () => { setPlan(+b.dataset.plan); b.blur(); }));
 
+  // On-screen buttons: the same actions as the keyboard, for phones
+  const buttons = {
+    minus: () => add(-1), finish: finishSet, reset,
+    sound: () => { state.sound = !state.sound; render(); },
+    fullscreen: toggleFullscreen,
+  };
+  for (const [id, action] of Object.entries(buttons)) {
+    $(id).addEventListener('click', e => { action(); e.currentTarget.blur(); });
+  }
+  if (!document.fullscreenEnabled) $('fullscreen').hidden = true;
+
   document.addEventListener('keydown', e => {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.code === 'Space') { e.preventDefault(); add(1); }
     else if (e.code === 'Backspace' || e.code === 'Minus' || e.code === 'NumpadSubtract') { e.preventDefault(); add(-1); }
     else if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); finishSet(); }
-    else if (e.code === 'KeyR') { if (confirm('Сбросить счётчик и подходы?')) { state.count = 0; state.sets = []; render(); } }
-    else if (e.code === 'KeyF') {
-      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
-    }
+    else if (e.code === 'KeyR') reset();
+    else if (e.code === 'KeyF') toggleFullscreen();
   });
   // Tap/click on the counter screen (not on its controls) also counts
   app.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || e.target.closest('.plan, .top, a')) return;
+    if (e.button !== 0 || e.target.closest('.plan, .top, .controls, a')) return;
     // First tap after editing the plan only closes the field, it doesn't count
     if (document.activeElement === planInput) { e.preventDefault(); planInput.blur(); return; }
     add(1);
   });
   // Keep a valid plan if the field was left empty
   planInput.addEventListener('blur', () => { planInput.value = state.plan; });
+
+  // Keep the screen on during a workout (the lock is dropped whenever the tab is hidden)
+  let wakeLock = null;
+  async function keepAwake() {
+    if (wakeLock || !navigator.wakeLock || document.visibilityState !== 'visible') return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', keepAwake);
+  document.addEventListener('keydown', keepAwake);
+  document.addEventListener('visibilitychange', keepAwake);
 
   // Install as app
   let installEvent;

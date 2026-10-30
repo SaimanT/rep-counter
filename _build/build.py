@@ -318,7 +318,7 @@ TEMPLATE = """<!doctype html>
 {faq}
 {more}
 </main>
-<footer><a href="{root}">Счётчик повторений</a> · бесплатно и без регистрации</footer>
+<footer><a href="{home}">Счётчик повторений</a> · бесплатно и без регистрации</footer>
 <script src="{root}app.js"></script>
 </body>
 </html>
@@ -374,7 +374,7 @@ def render(page):
     body = page["body"].replace("{how_to}", HOW_TO).replace("{links}", links_html(PAGES, root))
     return TEMPLATE.format(
         title=escape(page["title"]), description=escape(page["description"]), url=url,
-        verify=VERIFY, root=root, base=BASE, h1=escape(page["h1"]), jsonld=jsonld(page, url),
+        verify=VERIFY, root=root, home=root or "./", base=BASE, h1=escape(page["h1"]), jsonld=jsonld(page, url),
         slug=slug, plan=page["plan"], presets=presets, body=body, faq=faq, more=more,
     )
 

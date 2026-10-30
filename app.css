@@ -17,7 +17,9 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 .top h1 { margin: 0; font-size: 16px; font-weight: 600; color: var(--muted); }
 .top button { font: inherit; font-size: 14px; color: var(--fg); background: var(--bar);
   border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-.plan { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px;
+/* The huge digits' glyphs overflow upward; keep controls above them so clicks reach them */
+.top, .plan, .help { z-index: 1; }
+.plan { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px;
   font-size: 20px; color: var(--muted); }
 .plan input { width: 100px; font-size: 26px; padding: 4px 8px; text-align: center;
   background: var(--bar); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; }

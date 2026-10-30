@@ -242,8 +242,13 @@
   });
   // Tap/click on the counter screen (not on its controls) also counts
   app.addEventListener('pointerdown', e => {
-    if (e.button === 0 && !e.target.closest('.plan, .top, a')) add(1);
+    if (e.button !== 0 || e.target.closest('.plan, .top, a')) return;
+    // First tap after editing the plan only closes the field, it doesn't count
+    if (document.activeElement === planInput) { e.preventDefault(); planInput.blur(); return; }
+    add(1);
   });
+  // Keep a valid plan if the field was left empty
+  planInput.addEventListener('blur', () => { planInput.value = state.plan; });
 
   // Install as app
   let installEvent;

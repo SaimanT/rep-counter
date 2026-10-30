@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Счётчик подтягиваний онлайн — подходы и общий итог</title>
+<meta name="description" content="Онлайн-счётчик подтягиваний: считайте каждое повторение пробелом или касанием, записывайте подходы и смотрите общий итог тренировки. Бесплатно, работает без интернета.">
+<meta name="theme-color" content="#101214">
+<link rel="canonical" href="https://saimant.github.io/rep-counter/podtyagivaniya/">
+<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
+<meta name="yandex-verification" content="9246cb77e3bfb61f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="stylesheet" href="../app.css">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:url" content="https://saimant.github.io/rep-counter/podtyagivaniya/">
+<meta property="og:title" content="Счётчик подтягиваний онлайн">
+<meta property="og:description" content="Онлайн-счётчик подтягиваний: считайте каждое повторение пробелом или касанием, записывайте подходы и смотрите общий итог тренировки. Бесплатно, работает без интернета.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/icon-512.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Счётчик подтягиваний",
+      "url": "https://saimant.github.io/rep-counter/podtyagivaniya/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Любая (браузер)",
+      "inLanguage": "ru",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "description": "Онлайн-счётчик подтягиваний: считайте каждое повторение пробелом или касанием, записывайте подходы и смотрите общий итог тренировки. Бесплатно, работает без интернета."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Как увеличить количество подтягиваний?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Тренируйтесь 2–3 раза в неделю, делайте много подходов с небольшим числом повторений и не доводите каждый подход до отказа. Записывайте подходы, чтобы видеть прогресс."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Это бесплатно?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, полностью бесплатно, без регистрации и без рекламы."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Работает ли счётчик без интернета?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Сохранится ли счёт, если закрыть вкладку?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Счётчик повторений",
+          "item": "https://saimant.github.io/rep-counter/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Счётчик подтягиваний",
+          "item": "https://saimant.github.io/rep-counter/podtyagivaniya/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-slug="podtyagivaniya" data-default-plan="10" data-root="../">
+<section id="app" aria-label="Счётчик">
+  <div class="top">
+    <h1>Счётчик подтягиваний</h1>
+    <button id="install" hidden>Установить приложение</button>
+  </div>
+  <div class="plan">
+    <label for="plan">План:</label>
+    <input id="plan" type="number" min="1" inputmode="numeric" value="10">
+    <div class="presets">
+      <button data-plan="5">5</button><button data-plan="8">8</button><button data-plan="10">10</button><button data-plan="15">15</button><button data-plan="20">20</button>
+    </div>
+  </div>
+  <div class="count" id="count" aria-live="polite">0</div>
+  <div class="info">
+    Сделано <b id="done">0</b> из <b id="total">10</b>
+    &nbsp;·&nbsp; <span class="left">осталось <b id="left">10</b></span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="sets" id="sets"></div>
+  <div class="help">
+    <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
+    <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>
+    Нажмите на экран, чтобы добавить повторение · <a href="#about">Как пользоваться ↓</a>
+  </div>
+</section>
+
+<main id="about">
+  <h2>Как считать подтягивания</h2>
+  <p>Во время подтягиваний руки заняты, поэтому считайте после подхода: спрыгнули — нажали пробел
+  нужное число раз и Enter, чтобы записать подход. Или попросите партнёра нажимать за вас.
+  Главное — счётчик сложит все подходы и покажет, сколько всего вы подтянулись за тренировку.</p>
+
+  <h2>Как пользоваться</h2>
+  <ul>
+    <li><b>Задайте план</b> — введите число или выберите готовое кнопками рядом.</li>
+    <li><b>Нажимайте пробел</b> после каждого повторения. На телефоне — касайтесь экрана.</li>
+    <li><b>Ошиблись?</b> Backspace убирает одно повторение.</li>
+    <li><b>Закончили подход</b> — нажмите Enter. Подход запишется, счёт начнётся заново,
+      а внизу появится итог, например: «Подходы: 20 · 20 · 18 — всего 58».</li>
+    <li><b>План выполнен</b> — экран станет зелёным и прозвучит сигнал.</li>
+    <li><b>F</b> включает полноэкранный режим, <b>R</b> сбрасывает всю тренировку.</li>
+  </ul>
+  <h2>Сколько подтягиваний делать</h2>
+  <ul>
+    <li><b>Пока не получается ни разу:</b> негативы (медленное опускание) и подтягивания с резинкой.</li>
+    <li><b>1–5 раз:</b> 4–6 подходов по 1–3 повторения, без отказа.</li>
+    <li><b>5–10 раз:</b> 3–5 подходов по 60–80% от максимума.</li>
+    <li><b>Лесенка:</b> 1, 2, 3, 4… повторений в подходах — удобно записывать каждый подход клавишей Enter.</li>
+  </ul>
+
+  <h2>Техника: коротко</h2>
+  <ul>
+    <li>Начинайте из виса на прямых руках, без раскачки.</li>
+    <li>Подбородок поднимается выше перекладины.</li>
+    <li>Сводите лопатки и тяните локти вниз, а не просто сгибайте руки.</li>
+  </ul>
+
+  <h2>Частые вопросы</h2>
+  <h3>Как увеличить количество подтягиваний?</h3>
+  <p>Тренируйтесь 2–3 раза в неделю, делайте много подходов с небольшим числом повторений и не доводите каждый подход до отказа. Записывайте подходы, чтобы видеть прогресс.</p>
+  <h3>Это бесплатно?</h3>
+  <p>Да, полностью бесплатно, без регистрации и без рекламы.</p>
+  <h3>Работает ли счётчик без интернета?</h3>
+  <p>Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон.</p>
+  <h3>Сохранится ли счёт, если закрыть вкладку?</h3>
+  <p>Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются.</p>
+  <h2>Другие счётчики</h2>
+  <ul class="links">
+    <li><a href="../otzhimaniya/">Счётчик отжиманий</a></li>
+    <li><a href="../prisedaniya/">Счётчик приседаний</a></li>
+    <li><a href="../press/">Счётчик упражнений на пресс</a></li>
+    <li><a href="../berpi/">Счётчик берпи</a></li>
+    <li><a href="../vypady/">Счётчик выпадов</a></li>
+  </ul>
+</main>
+<footer><a href="../">Счётчик повторений</a> · бесплатно и без регистрации</footer>
+<script src="../app.js"></script>
+</body>
+</html>

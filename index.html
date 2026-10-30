@@ -12,11 +12,12 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="app.css">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
-<meta property="og:title" content="Счётчик повторений онлайн">
-<meta property="og:description" content="Нажимайте пробел после каждого повторения — счётчик покажет, сколько сделано и сколько осталось. Бесплатно, без регистрации.">
 <meta property="og:url" content="https://saimant.github.io/rep-counter/">
+<meta property="og:title" content="Счётчик повторений онлайн">
+<meta property="og:description" content="Бесплатный онлайн-счётчик повторений для тренировок. Задайте план, нажимайте пробел после каждого повторения — огромные цифры, сколько осталось, подходы. Работает без интернета и регистрации.">
 <meta property="og:image" content="https://saimant.github.io/rep-counter/icon-512.png">
 <meta name="twitter:card" content="summary">
 <script type="application/ld+json">
@@ -26,85 +27,59 @@
     {
       "@type": "WebApplication",
       "name": "Счётчик повторений",
+      "url": "https://saimant.github.io/rep-counter/",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Любая (браузер)",
       "inLanguage": "ru",
-      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "RUB" },
-      "description": "Онлайн-счётчик повторений для тренировок: план, большие цифры, подходы, управление пробелом, работа без интернета."
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "description": "Бесплатный онлайн-счётчик повторений для тренировок. Задайте план, нажимайте пробел после каждого повторения — огромные цифры, сколько осталось, подходы. Работает без интернета и регистрации."
     },
     {
       "@type": "FAQPage",
       "mainEntity": [
-        { "@type": "Question", "name": "Это бесплатно?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Да, полностью бесплатно, без регистрации и без рекламы." } },
-        { "@type": "Question", "name": "Работает ли счётчик без интернета?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон." } },
-        { "@type": "Question", "name": "Сохранится ли счёт, если закрыть вкладку?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве." } },
-        { "@type": "Question", "name": "Можно ли пользоваться на телефоне?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Да. На телефоне просто нажимайте на экран — каждое касание добавляет одно повторение." } }
+        {
+          "@type": "Question",
+          "name": "Это бесплатно?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, полностью бесплатно, без регистрации и без рекламы."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Работает ли счётчик без интернета?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Сохранится ли счёт, если закрыть вкладку?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Можно ли пользоваться на телефоне?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. Каждое касание экрана добавляет одно повторение."
+          }
+        }
       ]
     }
   ]
 }
 </script>
-<style>
-  :root {
-    --bg: #101214; --fg: #f2f2f2; --muted: #8a9099; --accent: #4ade80;
-    --bar: #23272c; --done: #22c55e; --line: #2a2f35;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  html, body { margin: 0; background: var(--bg); color: var(--fg);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-
-  /* ---------- counter screen ---------- */
-  #app { min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; padding: 72px 16px 88px; position: relative;
-    user-select: none; -webkit-user-select: none; touch-action: manipulation; transition: background .3s; }
-  #app.finished { background: #0d2a18; }
-  .top { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between;
-    align-items: center; padding: 14px 16px; gap: 12px; }
-  .top h1 { margin: 0; font-size: 16px; font-weight: 600; color: var(--muted); }
-  .top button { font: inherit; font-size: 14px; color: var(--fg); background: var(--bar);
-    border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
-  .plan { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px;
-    font-size: 20px; color: var(--muted); }
-  .plan input { width: 100px; font-size: 26px; padding: 4px 8px; text-align: center;
-    background: var(--bar); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; }
-  .presets { display: flex; gap: 6px; }
-  .presets button { font: inherit; font-size: 15px; color: var(--muted); background: transparent;
-    border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
-  .presets button:hover { color: var(--fg); }
-  .count { font-size: min(45vw, 48vh); font-weight: 800; line-height: 1; margin: 2vh 0 1vh;
-    font-variant-numeric: tabular-nums; }
-  .info { font-size: clamp(20px, 4vw, 42px); color: var(--muted); text-align: center; }
-  .info b { color: var(--fg); }
-  .left b { color: var(--accent); }
-  .progress { width: min(900px, 100%); height: 16px; background: var(--bar); border-radius: 8px;
-    margin: 3vh 0; overflow: hidden; }
-  .progress div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
-  #app.finished .progress div { background: var(--done); }
-  .sets { font-size: 18px; color: var(--muted); min-height: 26px; text-align: center; }
-  .help { position: absolute; bottom: 12px; left: 0; right: 0; font-size: 13px; color: #5c636c;
-    text-align: center; padding: 0 16px; line-height: 1.9; }
-  .help a { color: var(--muted); }
-  kbd { background: var(--bar); border: 1px solid #3a3f45; border-radius: 4px; padding: 1px 6px; color: var(--fg); }
-  .bump { animation: bump .15s ease-out; }
-  @keyframes bump { from { transform: scale(1.08); } to { transform: scale(1); } }
-  @media (hover: none) { .keys { display: none; } }
-
-  /* ---------- text content ---------- */
-  main { max-width: 760px; margin: 0 auto; padding: 48px 16px 64px; line-height: 1.65; font-size: 17px;
-    border-top: 1px solid var(--line); }
-  main h2 { font-size: 26px; margin: 40px 0 12px; }
-  main h3 { font-size: 19px; margin: 24px 0 6px; }
-  main p, main li { color: #c9ced4; }
-  main ul { padding-left: 22px; }
-  footer { text-align: center; color: #5c636c; font-size: 14px; padding: 24px 16px 40px; }
-</style>
 </head>
-<body>
+<body data-slug="" data-default-plan="10" data-root="">
 <section id="app" aria-label="Счётчик">
   <div class="top">
     <h1>Счётчик повторений</h1>
@@ -114,8 +89,7 @@
     <label for="plan">План:</label>
     <input id="plan" type="number" min="1" inputmode="numeric" value="10">
     <div class="presets">
-      <button data-plan="10">10</button><button data-plan="20">20</button>
-      <button data-plan="50">50</button><button data-plan="100">100</button>
+      <button data-plan="10">10</button><button data-plan="20">20</button><button data-plan="50">50</button><button data-plan="100">100</button>
     </div>
   </div>
   <div class="count" id="count" aria-live="polite">0</div>
@@ -141,20 +115,27 @@
 
   <h2>Как пользоваться</h2>
   <ul>
-    <li><b>Задайте план</b> — например, 20 приседаний. Можно выбрать готовое число: 10, 20, 50 или 100.</li>
+    <li><b>Задайте план</b> — введите число или выберите готовое кнопками рядом.</li>
     <li><b>Нажимайте пробел</b> после каждого повторения. На телефоне — касайтесь экрана.</li>
     <li><b>Ошиблись?</b> Backspace убирает одно повторение.</li>
     <li><b>Закончили подход</b> — нажмите Enter. Подход запишется, счёт начнётся заново,
-      а внизу появится итог: «Подходы: 20 · 20 · 18 — всего 58».</li>
+      а внизу появится итог, например: «Подходы: 20 · 20 · 18 — всего 58».</li>
     <li><b>План выполнен</b> — экран станет зелёным и прозвучит сигнал.</li>
     <li><b>F</b> включает полноэкранный режим, <b>R</b> сбрасывает всю тренировку.</li>
   </ul>
-
   <h2>Для каких упражнений подходит</h2>
   <p>Для любых, где важно количество: отжимания, приседания, подтягивания, выпады, скручивания,
-  берпи, прыжки на скакалке, махи гирей. Удобно для челленджей вроде «100 отжиманий в день»:
-  ставите план 100 и разбиваете на подходы — счётчик сам сложит итог.</p>
-
+  берпи, махи гирей. Удобно для челленджей вроде «100 отжиманий в день»: ставите план 100
+  и разбиваете на подходы — счётчик сам сложит итог. Для популярных упражнений есть отдельные
+  счётчики с готовыми планами и советами:</p>
+  <ul class="links">
+    <li><a href="otzhimaniya/">Счётчик отжиманий</a></li>
+    <li><a href="prisedaniya/">Счётчик приседаний</a></li>
+    <li><a href="podtyagivaniya/">Счётчик подтягиваний</a></li>
+    <li><a href="press/">Счётчик упражнений на пресс</a></li>
+    <li><a href="berpi/">Счётчик берпи</a></li>
+    <li><a href="vypady/">Счётчик выпадов</a></li>
+  </ul>
   <h2>Установите как приложение</h2>
   <p>Счётчик можно установить на компьютер или телефон — он откроется в отдельном окне и будет
   работать без интернета. В Chrome и Edge нажмите кнопку «Установить приложение» вверху страницы
@@ -164,104 +145,14 @@
   <h3>Это бесплатно?</h3>
   <p>Да, полностью бесплатно, без регистрации и без рекламы.</p>
   <h3>Работает ли счётчик без интернета?</h3>
-  <p>Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение.</p>
+  <p>Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон.</p>
   <h3>Сохранится ли счёт, если закрыть вкладку?</h3>
-  <p>Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные
-  никуда не отправляются.</p>
+  <p>Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются.</p>
   <h3>Можно ли пользоваться на телефоне?</h3>
   <p>Да. Каждое касание экрана добавляет одно повторение.</p>
+
 </main>
-<footer>Счётчик повторений · бесплатно и без регистрации</footer>
-
-<script>
-  const KEY = 'rep-counter-v1';
-  let state = { plan: 10, count: 0, sets: [] };
-  try { Object.assign(state, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
-
-  const $ = id => document.getElementById(id);
-  const app = $('app');
-  const planInput = $('plan');
-  planInput.value = state.plan;
-
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
-
-  function beep(freq = 880, ms = 120) {
-    try {
-      const ctx = beep.ctx || (beep.ctx = new AudioContext());
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = freq; o.connect(g); g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.2, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + ms / 1000);
-      o.start(); o.stop(ctx.currentTime + ms / 1000);
-    } catch (e) {}
-  }
-
-  function render(bump) {
-    const left = Math.max(state.plan - state.count, 0);
-    $('count').textContent = state.count;
-    $('done').textContent = state.count;
-    $('total').textContent = state.plan;
-    $('left').textContent = left;
-    $('bar').style.width = Math.min(state.count / state.plan * 100, 100) + '%';
-    app.classList.toggle('finished', state.count >= state.plan);
-    const sum = state.sets.reduce((a, b) => a + b, 0);
-    $('sets').textContent = state.sets.length
-      ? `Подходы: ${state.sets.join(' · ')}  —  всего за тренировку: ${sum + state.count}`
-      : '';
-    if (bump) { const c = $('count'); c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); }
-    save();
-  }
-
-  function add(n) {
-    state.count = Math.max(state.count + n, 0);
-    if (n > 0) beep(state.count === state.plan ? 1320 : 880, state.count === state.plan ? 400 : 80);
-    render(n > 0);
-  }
-
-  function finishSet() {
-    if (state.count > 0) { state.sets.push(state.count); state.count = 0; render(); }
-  }
-
-  function setPlan(v) { if (v > 0) { state.plan = v; planInput.value = v; render(); } }
-
-  planInput.addEventListener('input', () => setPlan(parseInt(planInput.value, 10)));
-  // Enter in the plan field returns focus to the counter
-  planInput.addEventListener('keydown', e => { if (e.key === 'Enter') planInput.blur(); e.stopPropagation(); });
-  document.querySelectorAll('[data-plan]').forEach(b =>
-    b.addEventListener('click', () => { setPlan(+b.dataset.plan); b.blur(); }));
-
-  document.addEventListener('keydown', e => {
-    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.code === 'Space') { e.preventDefault(); add(1); }
-    else if (e.code === 'Backspace' || e.code === 'Minus' || e.code === 'NumpadSubtract') { e.preventDefault(); add(-1); }
-    else if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); finishSet(); }
-    else if (e.code === 'KeyR') { if (confirm('Сбросить счётчик и подходы?')) { state.count = 0; state.sets = []; render(); } }
-    else if (e.code === 'KeyF') {
-      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
-    }
-  });
-  // Tap/click on the counter screen (not on its controls) also counts
-  app.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || e.target.closest('.plan, .top, a')) return;
-    // First tap after editing the plan only closes the field, it doesn't count
-    if (document.activeElement === planInput) { e.preventDefault(); planInput.blur(); return; }
-    add(1);
-  });
-  // Keep a valid plan if the field was left empty
-  planInput.addEventListener('blur', () => { planInput.value = state.plan; });
-
-  // Install as app
-  let installEvent;
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; $('install').hidden = false; });
-  $('install').addEventListener('click', async () => {
-    if (!installEvent) return;
-    installEvent.prompt(); await installEvent.userChoice; installEvent = null; $('install').hidden = true;
-  });
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
-
-  render();
-</script>
+<footer><a href="">Счётчик повторений</a> · бесплатно и без регистрации</footer>
+<script src="app.js"></script>
 </body>
 </html>

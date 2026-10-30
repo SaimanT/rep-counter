@@ -70,7 +70,8 @@ def seo(page, p):
     eq(p.title(), page["title"], "title")
     desc = p.get_attribute('meta[name="description"]', "content")
     eq(desc, page["description"], "description")
-    assert 50 <= len(desc) <= 200, f"description length {len(desc)} outside 50–200"
+    assert 70 <= len(desc) <= 160, f"description length {len(desc)} outside 70–160 (cut off in search results)"
+    assert len(p.title()) <= 60, f"title length {len(p.title())} > 60 (cut off in search results)"
     live_url = LIVE + (page["slug"] + "/" if page["slug"] else "")
     eq(p.get_attribute('link[rel="canonical"]', "href"), live_url, "canonical")
     eq(p.get_attribute('meta[property="og:url"]', "content"), live_url, "og:url")
@@ -105,6 +106,13 @@ def links(page, p, req):
     assert hrefs, "no links found"
     bad = [(h, r.status) for h in sorted(set(hrefs)) if (r := req.get(h)).status != 200]
     assert not bad, f"broken: {bad}"
+    og = p.get_attribute('meta[property="og:image"]', "content")
+    eq(og, f"{LIVE}og/{page['slug'] or 'home'}.png", "og:image")
+    img = req.get(og.replace(LIVE, BASE))
+    eq(img.status, 200, "og:image status")
+    png = img.body()
+    eq((int.from_bytes(png[16:20], "big"), int.from_bytes(png[20:24], "big")), (1200, 630), "og:image size")
+    eq(p.get_attribute('meta[name="twitter:card"]', "content"), "summary_large_image", "twitter:card")
     if page["slug"]:
         others = p.locator("main .links a").count()
         eq(others, len(PAGES) - 2, "links to other exercises")

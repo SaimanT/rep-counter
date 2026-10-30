@@ -48,6 +48,15 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
 .hint button { font: inherit; font-size: 18px; line-height: 1; color: #5c636c; background: none; border: 0;
   padding: 4px 6px; cursor: pointer; }
 .hint button:hover { color: var(--fg); }
+/* Small "this page is also in …" offer above the goal field; never covers the buttons */
+.lang-offer { position: relative; z-index: 2; margin-bottom: 14px;
+  max-width: 100%; display: flex; align-items: center; gap: 10px; white-space: nowrap;
+  padding: 6px 6px 6px 14px; font-size: 15px; color: var(--fg); background: var(--bar);
+  border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 4px 16px rgba(0, 0, 0, .4); }
+.lang-offer span { overflow: hidden; text-overflow: ellipsis; }
+.lang-offer a { color: var(--accent); font-weight: 600; }
+.lang-offer button { font: inherit; font-size: 18px; line-height: 1; color: var(--muted); background: none;
+  border: 0; padding: 4px 8px; cursor: pointer; }
 .sets { font-size: 18px; color: var(--muted); min-height: 26px; text-align: center; }
 .controls { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center;
   gap: 10px; margin-top: 18px; }

@@ -1,4 +1,4 @@
-"""Renders the 1200×630 share previews (og/<slug>.png) for every page.
+"""Renders the 1200×630 share previews (og/<lang>-<id>.png) for every page.
 
     python site/_build/make_og.py
 
@@ -26,13 +26,13 @@ CARD = """<!doctype html><html><head><meta charset="utf-8"><style>
   .bar div {{ height: 100%; background: #4ade80; width: {pct}%; }}
 </style></head><body>
   <div class="text">
-    <h1>{name}<br>онлайн</h1>
-    <p>Жмите пробел после каждого повторения — счётчик покажет, сколько осталось</p>
-    <div class="url">Бесплатно · без регистрации · работает офлайн</div>
+    <h1>{name}<br>{suffix}</h1>
+    <p>{tagline}</p>
+    <div class="url">{badges}</div>
   </div>
   <div class="counter">
     <div class="n">{done}</div>
-    <div class="info">из <b>{plan}</b> · осталось <i>{left}</i></div>
+    <div class="info">{info}</div>
     <div class="bar"><div></div></div>
   </div>
 </body></html>"""
@@ -41,15 +41,21 @@ CARD = """<!doctype html><html><head><meta charset="utf-8"><style>
 def main():
     out = SITE / "og"
     out.mkdir(exist_ok=True)
+    for old in out.glob("*.png"):
+        old.unlink()
     with sync_playwright() as pw:
         browser = pw.chromium.launch(channel="msedge")
         page = browser.new_page(viewport={"width": 1200, "height": 630})
         for p in PAGES:
             plan = p["plan"]
             done = round(plan * 0.6)
-            page.set_content(CARD.format(name=escape(p["h1"]), plan=plan, done=done,
-                                         left=plan - done, pct=done / plan * 100))
-            page.screenshot(path=str(out / f"{p['slug'] or 'home'}.png"))
+            ui = p["ui"]
+            info = (f'{ui["og_of"]} <b>{plan}</b> · <i>{plan - done}</i> {ui["og_left"]}' if ui["lang"] == "en"
+                    else f'{ui["og_of"]} <b>{plan}</b> · {ui["og_left"]} <i>{plan - done}</i>')
+            page.set_content(CARD.format(name=escape(p["h1"]), suffix=ui["og_title_suffix"].strip(), done=done,
+                                         tagline=ui["og_tagline"], badges=ui["og_badges"], info=info,
+                                         pct=done / plan * 100))
+            page.screenshot(path=str(out / f"{p['lang']}-{p['id']}.png"))
         browser.close()
     print(f"Rendered {len(PAGES)} previews to {out}")
 

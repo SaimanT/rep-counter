@@ -1,292 +1,46 @@
-"""Generates the site pages and sitemap from PAGES.
+"""Generates every page, manifest, the sitemap and the offline file list.
 
 Run from anywhere:  python site/_build/build.py
 Folders starting with "_" are not published by GitHub Pages.
+
+English is the main version (site root), Russian lives under /ru/. Texts are in
+content_en.py and content_ru.py; pages with the same "id" are translations of each other.
 """
 import hashlib
 import json
+import re
 from datetime import date
 from html import escape
 from pathlib import Path
+
+import content_en
+import content_ru
 
 BASE = "https://saimant.github.io/rep-counter/"
 SITE = Path(__file__).resolve().parent.parent
 VERIFY = """<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
 <meta name="yandex-verification" content="9246cb77e3bfb61f">"""
+LANGS = [(content_en.UI, content_en.PAGES), (content_ru.UI, content_ru.PAGES)]
+MAIN_LANG = "en"
 
-COMMON_FAQ = [
-    ("Это бесплатно?", "Да, полностью бесплатно, без регистрации и без рекламы."),
-    ("Работает ли счётчик без интернета?",
-     "Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон."),
-    ("Сохранится ли счёт, если закрыть вкладку?",
-     "Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются."),
-]
 
-SHORT_FAQ = [
-    ("Это бесплатно и работает без интернета?",
-     "Да: без регистрации и рекламы, а после первого открытия страница работает офлайн. Счёт сохраняется в браузере."),
-]
+def page_path(ui, page):
+    return ui["prefix"] + (page["slug"] + "/" if page["slug"] else "")
 
-CONTROLS = """
-  <p><b>Управление:</b> пробел — +1, Backspace — −1, Enter — закончить подход, R — сбросить.
-  На телефоне — касание экрана и кнопки под счётчиком. <a href="{root}#about">Подробнее о счётчике</a>.</p>"""
 
-HOW_TO = """
-  <h2>Как пользоваться</h2>
-  <ul>
-    <li><b>Задайте план</b> — введите число или выберите готовое кнопками рядом.</li>
-    <li><b>Нажимайте пробел</b> после каждого повторения. На телефоне — касайтесь экрана.</li>
-    <li><b>Ошиблись?</b> Backspace убирает одно повторение.</li>
-    <li><b>Закончили подход</b> — нажмите Enter. Подход запишется, счёт начнётся заново,
-      а внизу появится итог, например: «Подходы: 20 · 20 · 18 — всего 58».</li>
-    <li><b>План выполнен</b> — экран станет зелёным и прозвучит сигнал.</li>
-    <li><b>F</b> включает полноэкранный режим, <b>R</b> сбрасывает всю тренировку.</li>
-    <li><b>На телефоне</b> всё то же есть кнопками под счётчиком: −1, «Подход», «Сброс»,
-      звук и вибрация, полный экран. Пока страница открыта, экран не гаснет.</li>
-  </ul>"""
+# Every page with its language, path and translations — also used by the tests
+PAGES = []
+for _ui, _pages in LANGS:
+    for _p in _pages:
+        PAGES.append({**_p, "lang": _ui["lang"], "ui": _ui, "path": page_path(_ui, _p)})
+for _p in PAGES:
+    _p["alts"] = {q["lang"]: q["path"] for q in PAGES if q["id"] == _p["id"]}
 
-PAGES = [
-    {
-        "slug": "",
-        "h1": "Счётчик повторений",
-        "title": "Счётчик повторений онлайн — пробелом, без регистрации",
-        "description": "Бесплатный счётчик повторений для тренировок: задайте план и жмите пробел после каждого повторения. Большие цифры, остаток, подходы, работает офлайн.",
-        "plan": 10, "presets": [10, 20, 50, 100],
-        "body": """
-  <h2>Онлайн-счётчик повторений для тренировок</h2>
-  <p>Считать повторения в уме легко сбиться — особенно на 30-м отжимании или на третьем подходе.
-  Этот счётчик делает это за вас: задайте план, а после каждого повторения нажимайте пробел
-  (или касайтесь экрана телефона). Огромные цифры видно с другого конца комнаты, а под ними —
-  сколько уже сделано и сколько осталось.</p>
-{how_to}
-  <h2>Для каких упражнений подходит</h2>
-  <p>Для любых, где важно количество: отжимания, приседания, подтягивания, выпады, скручивания,
-  берпи, махи гирей. Удобно для челленджей вроде «100 отжиманий в день»: ставите план 100
-  и разбиваете на подходы — счётчик сам сложит итог. Для популярных упражнений есть отдельные
-  счётчики с готовыми планами и советами:</p>
-{links}
-  <h2>Установите как приложение</h2>
-  <p>Счётчик можно установить на компьютер или телефон — он откроется в отдельном окне и будет
-  работать без интернета. В Chrome и Edge нажмите кнопку «Установить приложение» вверху страницы
-  или значок установки в адресной строке. На iPhone: «Поделиться» → «На экран „Домой“».</p>
-""",
-        "faq": COMMON_FAQ + [
-            ("Можно ли пользоваться на телефоне?", "Да. Каждое касание экрана добавляет одно повторение."),
-        ],
-    },
-    {
-        "slug": "otzhimaniya",
-        "name": "Отжимания",
-        "h1": "Счётчик отжиманий",
-        "title": "Счётчик отжиманий онлайн — считайте отжимания и подходы",
-        "description": "Счётчик отжиманий онлайн: задайте план и жмите пробел или касайтесь экрана после каждого отжимания. Видно, сколько осталось, подходы суммируются.",
-        "plan": 20, "presets": [10, 20, 30, 50, 100],
-        "body": """
-  <h2>Как считать отжимания</h2>
-  <p>Поставьте ноутбук или телефон так, чтобы видеть экран из упора лёжа. После каждого отжимания
-  нажимайте пробел — или кладите телефон на пол перед собой и касайтесь экрана. Большие цифры
-  видно даже краем глаза, а строка «осталось» помогает дожать подход до конца.</p>
-{how_to}
-  <h2>Сколько отжиманий делать</h2>
-  <ul>
-    <li><b>Новичок:</b> 3 подхода по 5–10 повторений, можно с колен или от опоры.</li>
-    <li><b>Средний уровень:</b> 3–4 подхода по 15–25 повторений.</li>
-    <li><b>Челлендж «100 отжиманий в день»:</b> поставьте план 100 и делайте подходами в течение
-      дня — после каждого жмите Enter, счётчик покажет общий итог.</li>
-  </ul>
-  <p>Добавляйте по 1–2 повторения в подход раз в несколько тренировок — так прогресс будет стабильным.</p>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Тело — прямая линия от головы до пяток, не провисайте в пояснице.</li>
-    <li>Локти под углом около 45° к корпусу, а не в стороны.</li>
-    <li>Опускайтесь, пока грудь почти не коснётся пола, и полностью выпрямляйте руки.</li>
-    <li>Считайте только чистые повторения — на то и счётчик.</li>
-  </ul>
-""",
-        "faq": [
-            ("Сколько отжиманий нужно делать в день?",
-             "Зависит от уровня. Новичкам хватит 20–30 отжиманий за несколько подходов, подготовленным — 50–100. Важнее регулярность и чистая техника, чем рекордное число."),
-            ("Можно ли считать отжимания с телефона?",
-             "Да. Положите телефон на пол перед собой и касайтесь экрана в верхней точке — каждое касание засчитает одно отжимание."),
-        ] + SHORT_FAQ,
-    },
-    {
-        "slug": "prisedaniya",
-        "name": "Приседания",
-        "h1": "Счётчик приседаний",
-        "title": "Счётчик приседаний онлайн — считайте приседания пробелом",
-        "description": "Счётчик приседаний онлайн: план, крупные цифры, сколько осталось и итог по подходам. Жмите пробел или касайтесь экрана после каждого приседа.",
-        "plan": 30, "presets": [15, 20, 30, 50, 100],
-        "body": """
-  <h2>Как считать приседания</h2>
-  <p>Встаньте лицом к экрану. Удобнее всего держать в руке беспроводную клавиатуру или пульт
-  с пробелом — или поставить телефон рядом и касаться экрана в верхней точке каждого приседа.
-  Огромные цифры видно с пары метров, так что не придётся наклоняться.</p>
-{how_to}
-  <h2>Сколько приседаний делать</h2>
-  <ul>
-    <li><b>Новичок:</b> 3 подхода по 10–15 повторений.</li>
-    <li><b>Средний уровень:</b> 3–4 подхода по 20–30 повторений.</li>
-    <li><b>Челлендж «100 приседаний в день»:</b> план 100, подходы по 20–25 с отдыхом —
-      счётчик сложит их в общий итог.</li>
-  </ul>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Стопы на ширине плеч, носки слегка развёрнуты наружу.</li>
-    <li>Колени идут по направлению носков и не заваливаются внутрь.</li>
-    <li>Спина ровная, пятки не отрываются от пола.</li>
-    <li>Опускайтесь хотя бы до параллели бедра с полом, если позволяет подвижность.</li>
-  </ul>
-""",
-        "faq": [
-            ("Сколько приседаний нужно делать в день?",
-             "Для начала 30–50 приседаний за несколько подходов. Подготовленные делают 100 и больше. Увеличивайте нагрузку постепенно и следите за коленями."),
-            ("Как считать приседания с гантелями, если руки заняты?",
-             "Сделайте подход, затем добавьте повторения пробелом и запишите подход клавишей Enter. Или попросите партнёра нажимать за вас."),
-        ] + SHORT_FAQ,
-    },
-    {
-        "slug": "podtyagivaniya",
-        "name": "Подтягивания",
-        "h1": "Счётчик подтягиваний",
-        "title": "Счётчик подтягиваний онлайн — подходы и общий итог",
-        "description": "Счётчик подтягиваний онлайн: записывайте подходы и смотрите общий итог тренировки. Считает пробелом или касанием экрана, работает без интернета.",
-        "plan": 10, "presets": [5, 8, 10, 15, 20],
-        "body": """
-  <h2>Как считать подтягивания</h2>
-  <p>Во время подтягиваний руки заняты, поэтому считайте после подхода: спрыгнули — нажали пробел
-  нужное число раз и Enter, чтобы записать подход. Или попросите партнёра нажимать за вас.
-  Главное — счётчик сложит все подходы и покажет, сколько всего вы подтянулись за тренировку.</p>
-{how_to}
-  <h2>Сколько подтягиваний делать</h2>
-  <ul>
-    <li><b>Пока не получается ни разу:</b> негативы (медленное опускание) и подтягивания с резинкой.</li>
-    <li><b>1–5 раз:</b> 4–6 подходов по 1–3 повторения, без отказа.</li>
-    <li><b>5–10 раз:</b> 3–5 подходов по 60–80% от максимума.</li>
-    <li><b>Лесенка:</b> 1, 2, 3, 4… повторений в подходах — удобно записывать каждый подход клавишей Enter.</li>
-  </ul>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Начинайте из виса на прямых руках, без раскачки.</li>
-    <li>Подбородок поднимается выше перекладины.</li>
-    <li>Сводите лопатки и тяните локти вниз, а не просто сгибайте руки.</li>
-  </ul>
-""",
-        "faq": [
-            ("Как увеличить количество подтягиваний?",
-             "Тренируйтесь 2–3 раза в неделю, делайте много подходов с небольшим числом повторений и не доводите каждый подход до отказа. Записывайте подходы, чтобы видеть прогресс."),
-            ("Можно ли записать лесенку?",
-             "Да. После каждой ступени нажимайте Enter — внизу появятся все подходы, например «1 · 2 · 3 · 4 · 5», и общий итог."),
-        ] + SHORT_FAQ,
-    },
-    {
-        "slug": "press",
-        "name": "Пресс",
-        "h1": "Счётчик упражнений на пресс",
-        "title": "Счётчик скручиваний на пресс онлайн",
-        "description": "Счётчик для пресса онлайн: скручивания, подъёмы ног, велосипед. Задайте план и жмите пробел или касайтесь экрана — видно, сколько осталось.",
-        "plan": 30, "presets": [15, 20, 30, 50],
-        "body": """
-  <h2>Как считать упражнения на пресс</h2>
-  <p>Положите телефон рядом на коврик и касайтесь экрана после каждого скручивания — или держите
-  под рукой клавиатуру и жмите пробел. Цифры крупные, их видно лёжа. Для разных упражнений
-  записывайте отдельные подходы клавишей Enter.</p>
-{how_to}
-  <h2>Сколько делать</h2>
-  <ul>
-    <li><b>Скручивания:</b> 3 подхода по 15–30 повторений.</li>
-    <li><b>Подъёмы ног лёжа:</b> 3 подхода по 10–20.</li>
-    <li><b>Велосипед:</b> 3 подхода по 20–40 касаний (каждая сторона — одно повторение).</li>
-  </ul>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Поясница прижата к полу, не тяните голову руками.</li>
-    <li>Поднимайтесь за счёт мышц живота, медленно и без рывков.</li>
-    <li>Выдох — на усилии, вдох — при опускании.</li>
-  </ul>
-""",
-        "faq": [
-            ("Сколько раз качать пресс в день?",
-             "Обычно хватает 3–4 подходов по 15–30 повторений 3–4 раза в неделю. Мышцам пресса тоже нужен отдых между тренировками."),
-            ("Как считать велосипед — каждую сторону или пару?",
-             "Обычно каждое касание локтем колена считают одним повторением. Главное — считать одинаково на всех тренировках, тогда прогресс будет виден."),
-        ] + SHORT_FAQ,
-    },
-    {
-        "slug": "berpi",
-        "name": "Берпи",
-        "h1": "Счётчик берпи",
-        "title": "Счётчик берпи онлайн — считайте берпи и подходы",
-        "description": "Онлайн-счётчик берпи: задайте план, нажимайте пробел после каждого повторения и следите, сколько осталось. Подходы складываются в общий итог. Бесплатно.",
-        "plan": 15, "presets": [10, 15, 20, 30, 50],
-        "body": """
-  <h2>Как считать берпи</h2>
-  <p>Берпи — быстрое упражнение, и к середине подхода счёт сбивается почти у всех. Поставьте
-  экран перед собой и в конце каждого прыжка нажимайте пробел или касайтесь телефона на полу —
-  счётчик покажет, сколько осталось до плана.</p>
-{how_to}
-  <h2>Сколько берпи делать</h2>
-  <ul>
-    <li><b>Новичок:</b> 3 подхода по 5–10 повторений, можно без отжимания и прыжка.</li>
-    <li><b>Средний уровень:</b> 3–5 подходов по 10–20.</li>
-    <li><b>Челлендж «100 берпи»:</b> план 100, разбивайте на подходы и записывайте их клавишей Enter.</li>
-  </ul>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Присед → упор лёжа → отжимание → обратно в присед → прыжок вверх с хлопком над головой.</li>
-    <li>В упоре держите корпус прямым, не провисайте.</li>
-    <li>Приземляйтесь мягко, на полусогнутые ноги.</li>
-  </ul>
-""",
-        "faq": [
-            ("Сколько берпи нужно делать?",
-             "Начните с 3 подходов по 10 и прибавляйте по 1–2 повторения в подход каждую неделю. Для интенсивной тренировки делают 50–100 берпи за сессию."),
-            ("Как не сбиться со счёта на берпи?",
-             "Жмите пробел или касайтесь экрана сразу после прыжка — счётчик ведёт счёт за вас, а строка «осталось» показывает, сколько до плана."),
-        ] + SHORT_FAQ,
-    },
-    {
-        "slug": "vypady",
-        "name": "Выпады",
-        "h1": "Счётчик выпадов",
-        "title": "Счётчик выпадов онлайн — считайте выпады на каждую ногу",
-        "description": "Счётчик выпадов онлайн: считайте повторения пробелом или касанием, записывайте подходы на каждую ногу и смотрите общий итог. Бесплатно.",
-        "plan": 20, "presets": [10, 20, 30, 40],
-        "body": """
-  <h2>Как считать выпады</h2>
-  <p>Нажимайте пробел или касайтесь экрана, когда возвращаетесь в стойку. Если делаете выпады
-  поочерёдно, считайте каждый шаг: план 20 — это по 10 на каждую ногу. Если делаете сначала одну
-  ногу, а потом другую — записывайте их как отдельные подходы клавишей Enter.</p>
-{how_to}
-  <h2>Сколько выпадов делать</h2>
-  <ul>
-    <li><b>Новичок:</b> 3 подхода по 8–10 на каждую ногу.</li>
-    <li><b>Средний уровень:</b> 3–4 подхода по 12–15 на ногу, можно с гантелями.</li>
-  </ul>
-
-  <h2>Техника: коротко</h2>
-  <ul>
-    <li>Шаг достаточно широкий, чтобы оба колена сгибались примерно под прямым углом.</li>
-    <li>Переднее колено над стопой, не уходит далеко за носок и не заваливается внутрь.</li>
-    <li>Корпус прямой, опускайтесь вертикально вниз.</li>
-  </ul>
-""",
-        "faq": [
-            ("Как считать выпады — на каждую ногу или вместе?",
-             "Как вам удобнее, главное — одинаково от тренировки к тренировке. Чаще считают на каждую ногу отдельно: для этого записывайте подходы на левую и правую ногу клавишей Enter."),
-            ("Сколько выпадов делать новичку?",
-             "Начните с 3 подходов по 8–10 повторений на каждую ногу и добавляйте по 2 повторения раз в неделю."),
-        ] + SHORT_FAQ,
-    },
-]
+# The first version had Russian pages at the root: keep those addresses working
+OLD_PATHS = {p["slug"] + "/": p["path"] for p in PAGES if p["lang"] == "ru" and p["slug"]}
 
 TEMPLATE = """<!doctype html>
-<html lang="ru">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -294,17 +48,19 @@ TEMPLATE = """<!doctype html>
 <meta name="description" content="{description}">
 <meta name="theme-color" content="#101214">
 <link rel="canonical" href="{url}">
+{alternates}
 {verify}
-<link rel="manifest" href="{root}manifest.webmanifest">
+<link rel="manifest" href="{home}manifest.webmanifest">
 <link rel="icon" href="{root}icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{root}icon-192.png">
 <link rel="stylesheet" href="{root}app.css?v={css_v}">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="ru_RU">
+<meta property="og:locale" content="{og_locale}">
+{og_alt_locales}
 <meta property="og:url" content="{url}">
-<meta property="og:title" content="{h1} онлайн">
+<meta property="og:title" content="{h1}{og_title_suffix}">
 <meta property="og:description" content="{description}">
-<meta property="og:image" content="{base}og/{og}.png">
+<meta property="og:image" content="{base}og/{lang}-{id}.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -312,18 +68,18 @@ TEMPLATE = """<!doctype html>
 {jsonld}
 </script>
 </head>
-<body data-slug="{slug}" data-default-plan="{plan}" data-root="{root}">
-<section id="app" aria-label="Счётчик">
+<body data-store="{store}" data-default-plan="{plan}" data-root="{root}">
+<section id="app" aria-label="{app_label}">
   <div class="top">
     <h1>{h1}</h1>
     <div class="tools">
-      <button id="install" hidden>Установить приложение</button>
-      <button id="sound" class="icon" aria-label="Звук и вибрация" aria-pressed="true">🔊</button>
-      <button id="fullscreen" class="icon" aria-label="Полный экран">⛶</button>
+      <button id="install" hidden>{install}</button>
+      <button id="sound" class="icon" aria-label="{sound}" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="{fullscreen}">⛶</button>
     </div>
   </div>
   <div class="plan">
-    <label for="plan">План:</label>
+    <label for="plan">{plan_label}</label>
     <input id="plan" type="number" min="1" inputmode="numeric" value="{plan}">
     <div class="presets">
       {presets}
@@ -331,53 +87,69 @@ TEMPLATE = """<!doctype html>
   </div>
   <div class="count" id="count" aria-live="polite">0</div>
   <div class="info">
-    Сделано <b id="done">0</b> из <b id="total">{plan}</b>
-    &nbsp;·&nbsp; <span class="left">осталось <b id="left">{plan}</b></span>
+    {info}
   </div>
   <div class="progress"><div id="bar"></div></div>
   <div class="sets" id="sets"></div>
   <div class="controls">
-    <button id="minus" aria-label="Убрать одно повторение">−1</button>
-    <button id="finish">✓ Подход</button>
-    <button id="reset">Сброс</button>
+    <button id="minus" aria-label="{minus}">−1</button>
+    <button id="finish">{finish}</button>
+    <button id="reset">{reset}</button>
   </div>
   <div class="help">
-    <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
-    <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>
-    Нажмите на экран, чтобы добавить повторение · <a href="#about">Как пользоваться ↓</a>
+    <span class="keys">{keys}<br></span>
+    {tap} · <a href="#about">{howto_link}</a>
   </div>
 </section>
 
 <main id="about">{body}
-  <h2>Частые вопросы</h2>
+  <h2>{faq_title}</h2>
 {faq}
 {more}
 </main>
-<footer><a href="{home}">Счётчик повторений</a> · бесплатно и без регистрации</footer>
+<footer><a href="{home}">{home_name}</a> · {footer_tail} · {switch}</footer>
 <script src="{root}app.js?v={js_v}"></script>
 </body>
 </html>
 """
 
+REDIRECT = """<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>{title}</title>
+<link rel="canonical" href="{url}">
+<meta http-equiv="refresh" content="0; url={target}">
+<script>location.replace('{target}' + location.hash)</script>
+</head>
+<body><a href="{target}">{title}</a></body>
+</html>
+"""
 
-def links_html(pages, root, skip=None):
+
+def rel_root(path):
+    return "../" * path.count("/")
+
+
+def links_html(page, root, skip=None):
     items = "\n".join(
-        f'    <li><a href="{root}{p["slug"]}/">{escape(p["h1"])}</a></li>'
-        for p in pages if p["slug"] and p["slug"] != skip
+        f'    <li><a href="{root}{q["path"]}">{escape(q["h1"])}</a></li>'
+        for q in PAGES if q["lang"] == page["lang"] and q["slug"] and q["id"] != skip
     )
     return f'  <ul class="links">\n{items}\n  </ul>'
 
 
 def jsonld(page, url):
+    ui = page["ui"]
     graph = [
         {
             "@type": "WebApplication",
             "name": page["h1"],
             "url": url,
             "applicationCategory": "HealthApplication",
-            "operatingSystem": "Любая (браузер)",
-            "inLanguage": "ru",
-            "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB"},
+            "operatingSystem": ui["os"],
+            "inLanguage": ui["lang"],
+            "offers": {"@type": "Offer", "price": "0", "priceCurrency": ui["currency"]},
             "description": page["description"],
         },
         {
@@ -392,7 +164,7 @@ def jsonld(page, url):
         graph.append({
             "@type": "BreadcrumbList",
             "itemListElement": [
-                {"@type": "ListItem", "position": 1, "name": "Счётчик повторений", "item": BASE},
+                {"@type": "ListItem", "position": 1, "name": ui["home_name"], "item": BASE + ui["prefix"]},
                 {"@type": "ListItem", "position": 2, "name": page["h1"], "item": url},
             ],
         })
@@ -405,38 +177,104 @@ def version(name):
 
 
 def render(page):
-    slug = page["slug"]
-    root = "../" if slug else ""
-    url = BASE + (slug + "/" if slug else "")
+    ui = page["ui"]
+    root = rel_root(page["path"])
+    home = root + ui["prefix"] or "./"
+    url = BASE + page["path"]
+    alternates = "\n".join(
+        [f'<link rel="alternate" hreflang="{lang}" href="{BASE}{path}">' for lang, path in page["alts"].items()]
+        + [f'<link rel="alternate" hreflang="x-default" href="{BASE}{page["alts"][MAIN_LANG]}">']
+    )
+    other = [(lang, path) for lang, path in page["alts"].items() if lang != page["lang"]]
+    og_alt_locales = "\n".join(
+        f'<meta property="og:locale:alternate" content="{next(u for u, _ in LANGS if u["lang"] == lang)["og_locale"]}">'
+        for lang, _ in other)
+    # ui["switch"] is the other language's own name ("Русский" on English pages)
+    switch = " · ".join(f'<a href="{root}{path}" hreflang="{lang}" lang="{lang}">{ui["switch"]}</a>'
+                        for lang, path in other)
     presets = "".join(f'<button data-plan="{n}">{n}</button>' for n in page["presets"])
     faq = "\n".join(f"  <h3>{escape(q)}</h3>\n  <p>{escape(a)}</p>" for q, a in page["faq"])
-    more = "" if not slug else "  <h2>Другие счётчики</h2>\n" + links_html(PAGES, root, skip=slug)
-    how_to = CONTROLS.replace("{root}", root) if slug else HOW_TO
-    body = page["body"].replace("{how_to}", how_to).replace("{links}", links_html(PAGES, root))
+    more = "" if not page["slug"] else f'  <h2>{ui["more_title"]}</h2>\n' + links_html(page, root, skip=page["id"])
+    lang_module = content_en if page["lang"] == "en" else content_ru
+    how_to = lang_module.CONTROLS.replace("{home}", home) if page["slug"] else lang_module.HOW_TO
+    body = page["body"].replace("{how_to}", how_to).replace("{links}", links_html(page, root))
     return TEMPLATE.format(
-        title=escape(page["title"]), description=escape(page["description"]), url=url,
-        verify=VERIFY, root=root, home=root or "./", base=BASE,
-        css_v=version("app.css"), js_v=version("app.js"), og=slug or "home", h1=escape(page["h1"]), jsonld=jsonld(page, url),
-        slug=slug, plan=page["plan"], presets=presets, body=body, faq=faq, more=more,
+        lang=page["lang"], title=escape(page["title"]), description=escape(page["description"]), url=url,
+        alternates=alternates, verify=VERIFY, root=root, home=home, base=BASE, id=page["id"],
+        css_v=version("app.css"), js_v=version("app.js"), og_locale=ui["og_locale"], og_alt_locales=og_alt_locales,
+        og_title_suffix=ui["og_title_suffix"], h1=escape(page["h1"]), jsonld=jsonld(page, url),
+        store=page["store"], plan=page["plan"], presets=presets, info=ui["info"].format(plan=page["plan"]),
+        app_label=ui["app_label"], install=ui["install"], sound=ui["sound"], fullscreen=ui["fullscreen"],
+        plan_label=ui["plan"], minus=ui["minus"], finish=ui["finish"], reset=ui["reset"], keys=ui["keys"],
+        tap=ui["tap"], howto_link=ui["howto_link"], body=body, faq_title=ui["faq_title"], faq=faq, more=more,
+        home_name=ui["home_name"], footer_tail=ui["footer_tail"], switch=switch,
     )
+
+
+def write(rel, text):
+    out = SITE / rel
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8", newline="\n")
+
+
+def manifest(ui):
+    root = rel_root(ui["prefix"])
+    home = next(p for p in PAGES if p["lang"] == ui["lang"] and not p["slug"])
+    return json.dumps({
+        "name": ui["home_name"],
+        "short_name": ui["home_name"],
+        "description": home["description"],
+        "lang": ui["lang"],
+        "start_url": "./",
+        "scope": "./",
+        "display": "standalone",
+        "background_color": "#101214",
+        "theme_color": "#101214",
+        "icons": [
+            {"src": f"{root}icon-192.png", "sizes": "192x192", "type": "image/png"},
+            {"src": f"{root}icon-512.png", "sizes": "512x512", "type": "image/png"},
+            {"src": f"{root}icon.svg", "sizes": "any", "type": "image/svg+xml"},
+        ],
+    }, ensure_ascii=False, indent=2) + "\n"
+
+
+def sitemap():
+    today = date.today().isoformat()
+    entries = []
+    for p in PAGES:
+        alts = "".join(
+            f'\n    <xhtml:link rel="alternate" hreflang="{lang}" href="{BASE}{path}"/>'
+            for lang, path in [*p["alts"].items(), ("x-default", p["alts"][MAIN_LANG])])
+        entries.append(f"  <url>\n    <loc>{BASE}{p['path']}</loc>\n    <lastmod>{today}</lastmod>{alts}\n  </url>")
+    return ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
+            + "\n".join(entries) + "\n</urlset>\n")
+
+
+def offline_files():
+    """Keep the service worker's precache list in sync with the pages."""
+    files = (["./", "index.html", "app.css", "app.js", "icon.svg", "icon-192.png", "icon-512.png"]
+             + [u["prefix"] + "manifest.webmanifest" for u, _ in LANGS]
+             + [p["path"] for p in PAGES if p["path"]])
+    sw = (SITE / "sw.js").read_text(encoding="utf-8")
+    listing = "const FILES = [\n" + "".join(f"  '{f}',\n" for f in files) + "];"
+    sw = re.sub(r"const FILES = \[.*?\];", listing, sw, flags=re.S)
+    sw = re.sub(r"const CACHE = '[^']*';",
+                f"const CACHE = 'rep-counter-{hashlib.sha1(listing.encode()).hexdigest()[:8]}';", sw)
+    write("sw.js", sw)
 
 
 def main():
-    today = date.today().isoformat()
-    urls = []
-    for page in PAGES:
-        out = SITE / page["slug"] / "index.html" if page["slug"] else SITE / "index.html"
-        out.parent.mkdir(exist_ok=True)
-        out.write_text(render(page), encoding="utf-8", newline="\n")
-        urls.append(BASE + (page["slug"] + "/" if page["slug"] else ""))
-    entries = "\n".join(f"  <url>\n    <loc>{u}</loc>\n    <lastmod>{today}</lastmod>\n  </url>" for u in urls)
-    (SITE / "sitemap.xml").write_text(
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-        f"{entries}\n</urlset>\n",
-        encoding="utf-8", newline="\n",
-    )
-    print(f"Built {len(PAGES)} pages")
+    for p in PAGES:
+        write(p["path"] + "index.html", render(p))
+    for old, new in OLD_PATHS.items():
+        page = next(p for p in PAGES if p["path"] == new)
+        write(old + "index.html", REDIRECT.format(title=escape(page["title"]), url=BASE + new, target="../" + new))
+    for ui, _ in LANGS:
+        write(ui["prefix"] + "manifest.webmanifest", manifest(ui))
+    write("sitemap.xml", sitemap())
+    offline_files()
+    print(f"Built {len(PAGES)} pages in {len(LANGS)} languages, {len(OLD_PATHS)} redirects")
 
 
 if __name__ == "__main__":

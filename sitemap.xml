@@ -1,31 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://saimant.github.io/rep-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/otzhimaniya/</loc>
+    <loc>https://saimant.github.io/rep-counter/push-up-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/push-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/otzhimaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/push-up-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/prisedaniya/</loc>
+    <loc>https://saimant.github.io/rep-counter/squat-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/squat-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/prisedaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/squat-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/podtyagivaniya/</loc>
+    <loc>https://saimant.github.io/rep-counter/pull-up-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/pull-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/podtyagivaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/pull-up-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/press/</loc>
+    <loc>https://saimant.github.io/rep-counter/sit-up-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/sit-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/press/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/sit-up-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/berpi/</loc>
+    <loc>https://saimant.github.io/rep-counter/burpee-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/burpee-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/berpi/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/burpee-counter/"/>
   </url>
   <url>
-    <loc>https://saimant.github.io/rep-counter/vypady/</loc>
+    <loc>https://saimant.github.io/rep-counter/lunge-counter/</loc>
     <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/lunge-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/vypady/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/lunge-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/otzhimaniya/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/push-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/otzhimaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/push-up-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/prisedaniya/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/squat-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/prisedaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/squat-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/podtyagivaniya/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/pull-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/podtyagivaniya/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/pull-up-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/press/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/sit-up-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/press/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/sit-up-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/berpi/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/burpee-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/berpi/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/burpee-counter/"/>
+  </url>
+  <url>
+    <loc>https://saimant.github.io/rep-counter/ru/vypady/</loc>
+    <lastmod>2026-10-30</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/lunge-counter/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/vypady/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/lunge-counter/"/>
   </url>
 </urlset>

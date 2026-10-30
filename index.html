@@ -1,24 +1,28 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Счётчик повторений онлайн — пробелом, без регистрации</title>
-<meta name="description" content="Бесплатный счётчик повторений для тренировок: задайте план и жмите пробел после каждого повторения. Большие цифры, остаток, подходы, работает офлайн.">
+<title>Rep Counter Online — Count Reps with the Spacebar</title>
+<meta name="description" content="Free online rep counter for workouts. Set a goal, press space after each rep and see big numbers, reps left and sets. No sign-up, works offline.">
 <meta name="theme-color" content="#101214">
 <link rel="canonical" href="https://saimant.github.io/rep-counter/">
+<link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/">
+<link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/">
+<link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/">
 <meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
 <meta name="yandex-verification" content="9246cb77e3bfb61f">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="app.css?v=abdcf8ce">
+<link rel="stylesheet" href="app.css?v=4ff69bc8">
 <meta property="og:type" content="website">
-<meta property="og:locale" content="ru_RU">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
 <meta property="og:url" content="https://saimant.github.io/rep-counter/">
-<meta property="og:title" content="Счётчик повторений онлайн">
-<meta property="og:description" content="Бесплатный счётчик повторений для тренировок: задайте план и жмите пробел после каждого повторения. Большие цифры, остаток, подходы, работает офлайн.">
-<meta property="og:image" content="https://saimant.github.io/rep-counter/og/home.png">
+<meta property="og:title" content="Rep Counter Online">
+<meta property="og:description" content="Free online rep counter for workouts. Set a goal, press space after each rep and see big numbers, reps left and sets. No sign-up, works offline.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/og/en-home.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -28,51 +32,51 @@
   "@graph": [
     {
       "@type": "WebApplication",
-      "name": "Счётчик повторений",
+      "name": "Rep Counter",
       "url": "https://saimant.github.io/rep-counter/",
       "applicationCategory": "HealthApplication",
-      "operatingSystem": "Любая (браузер)",
-      "inLanguage": "ru",
+      "operatingSystem": "Any (web browser)",
+      "inLanguage": "en",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "RUB"
+        "priceCurrency": "USD"
       },
-      "description": "Бесплатный счётчик повторений для тренировок: задайте план и жмите пробел после каждого повторения. Большие цифры, остаток, подходы, работает офлайн."
+      "description": "Free online rep counter for workouts. Set a goal, press space after each rep and see big numbers, reps left and sets. No sign-up, works offline."
     },
     {
       "@type": "FAQPage",
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Это бесплатно?",
+          "name": "Is it free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да, полностью бесплатно, без регистрации и без рекламы."
+            "text": "Yes, completely free — no sign-up and no ads."
           }
         },
         {
           "@type": "Question",
-          "name": "Работает ли счётчик без интернета?",
+          "name": "Does the counter work offline?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон."
+            "text": "Yes. After the first visit the page works without internet, and you can install it as an app on your computer or phone."
           }
         },
         {
           "@type": "Question",
-          "name": "Сохранится ли счёт, если закрыть вкладку?",
+          "name": "Will my count be saved if I close the tab?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются."
+            "text": "Yes. Your count, goal and sets are saved in your browser on this device. Nothing is sent anywhere."
           }
         },
         {
           "@type": "Question",
-          "name": "Можно ли пользоваться на телефоне?",
+          "name": "Can I use it on my phone?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Да. Каждое касание экрана добавляет одно повторение."
+            "text": "Yes. Every tap on the screen adds one rep."
           }
         }
       ]
@@ -81,18 +85,18 @@
 }
 </script>
 </head>
-<body data-slug="" data-default-plan="10" data-root="">
-<section id="app" aria-label="Счётчик">
+<body data-store="" data-default-plan="10" data-root="">
+<section id="app" aria-label="Counter">
   <div class="top">
-    <h1>Счётчик повторений</h1>
+    <h1>Rep Counter</h1>
     <div class="tools">
-      <button id="install" hidden>Установить приложение</button>
-      <button id="sound" class="icon" aria-label="Звук и вибрация" aria-pressed="true">🔊</button>
-      <button id="fullscreen" class="icon" aria-label="Полный экран">⛶</button>
+      <button id="install" hidden>Install app</button>
+      <button id="sound" class="icon" aria-label="Sound and vibration" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Full screen">⛶</button>
     </div>
   </div>
   <div class="plan">
-    <label for="plan">План:</label>
+    <label for="plan">Goal:</label>
     <input id="plan" type="number" min="1" inputmode="numeric" value="10">
     <div class="presets">
       <button data-plan="10">10</button><button data-plan="20">20</button><button data-plan="50">50</button><button data-plan="100">100</button>
@@ -100,72 +104,72 @@
   </div>
   <div class="count" id="count" aria-live="polite">0</div>
   <div class="info">
-    Сделано <b id="done">0</b> из <b id="total">10</b>
-    &nbsp;·&nbsp; <span class="left">осталось <b id="left">10</b></span>
+    Done <b id="done">0</b> of <b id="total">10</b>
+    &nbsp;·&nbsp; <span class="left"><b id="left">10</b> left</span>
   </div>
   <div class="progress"><div id="bar"></div></div>
   <div class="sets" id="sets"></div>
   <div class="controls">
-    <button id="minus" aria-label="Убрать одно повторение">−1</button>
-    <button id="finish">✓ Подход</button>
-    <button id="reset">Сброс</button>
+    <button id="minus" aria-label="Remove one rep">−1</button>
+    <button id="finish">✓ Set</button>
+    <button id="reset">Reset</button>
   </div>
   <div class="help">
-    <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
-    <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>
-    Нажмите на экран, чтобы добавить повторение · <a href="#about">Как пользоваться ↓</a>
+    <span class="keys"><kbd>Space</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> finish set &nbsp;
+    <kbd>R</kbd> reset &nbsp; <kbd>F</kbd> full screen<br></span>
+    Tap the screen to add a rep · <a href="#about">How it works ↓</a>
   </div>
 </section>
 
 <main id="about">
-  <h2>Онлайн-счётчик повторений для тренировок</h2>
-  <p>Считать повторения в уме легко сбиться — особенно на 30-м отжимании или на третьем подходе.
-  Этот счётчик делает это за вас: задайте план, а после каждого повторения нажимайте пробел
-  (или касайтесь экрана телефона). Огромные цифры видно с другого конца комнаты, а под ними —
-  сколько уже сделано и сколько осталось.</p>
+  <h2>A free online rep counter for your workouts</h2>
+  <p>It's easy to lose count in your head — especially on rep 30 or your third set.
+  This counter keeps track for you: set a goal, then press space after every rep
+  (or tap your phone screen). The huge numbers are readable from across the room, and right
+  below them you see how many you've done and how many are left.</p>
 
-  <h2>Как пользоваться</h2>
+  <h2>How to use it</h2>
   <ul>
-    <li><b>Задайте план</b> — введите число или выберите готовое кнопками рядом.</li>
-    <li><b>Нажимайте пробел</b> после каждого повторения. На телефоне — касайтесь экрана.</li>
-    <li><b>Ошиблись?</b> Backspace убирает одно повторение.</li>
-    <li><b>Закончили подход</b> — нажмите Enter. Подход запишется, счёт начнётся заново,
-      а внизу появится итог, например: «Подходы: 20 · 20 · 18 — всего 58».</li>
-    <li><b>План выполнен</b> — экран станет зелёным и прозвучит сигнал.</li>
-    <li><b>F</b> включает полноэкранный режим, <b>R</b> сбрасывает всю тренировку.</li>
-    <li><b>На телефоне</b> всё то же есть кнопками под счётчиком: −1, «Подход», «Сброс»,
-      звук и вибрация, полный экран. Пока страница открыта, экран не гаснет.</li>
+    <li><b>Set a goal</b> — type a number or pick one of the presets.</li>
+    <li><b>Press space</b> after every rep. On a phone, tap the screen.</li>
+    <li><b>Miscounted?</b> Backspace removes one rep.</li>
+    <li><b>Finished a set?</b> Press Enter. The set is saved, the count starts over,
+      and you see the total below — for example “Sets: 20 · 20 · 18 — workout total: 58”.</li>
+    <li><b>Goal reached</b> — the screen turns green and a sound plays.</li>
+    <li><b>F</b> toggles full screen, <b>R</b> resets the whole workout.</li>
+    <li><b>On a phone</b> the same actions are buttons under the counter: −1, Set, Reset,
+      sound and vibration, full screen. The screen stays on while the page is open.</li>
   </ul>
-  <h2>Для каких упражнений подходит</h2>
-  <p>Для любых, где важно количество: отжимания, приседания, подтягивания, выпады, скручивания,
-  берпи, махи гирей. Удобно для челленджей вроде «100 отжиманий в день»: ставите план 100
-  и разбиваете на подходы — счётчик сам сложит итог. Для популярных упражнений есть отдельные
-  счётчики с готовыми планами и советами:</p>
+  <h2>Works for any exercise</h2>
+  <p>Use it for anything you count: push-ups, squats, pull-ups, lunges, sit-ups, burpees,
+  kettlebell swings. It's handy for challenges like “100 push-ups a day”: set a goal of 100,
+  split it into sets, and the counter adds them up. Popular exercises have their own counters
+  with ready-made goals and tips:</p>
   <ul class="links">
-    <li><a href="otzhimaniya/">Счётчик отжиманий</a></li>
-    <li><a href="prisedaniya/">Счётчик приседаний</a></li>
-    <li><a href="podtyagivaniya/">Счётчик подтягиваний</a></li>
-    <li><a href="press/">Счётчик упражнений на пресс</a></li>
-    <li><a href="berpi/">Счётчик берпи</a></li>
-    <li><a href="vypady/">Счётчик выпадов</a></li>
+    <li><a href="push-up-counter/">Push-Up Counter</a></li>
+    <li><a href="squat-counter/">Squat Counter</a></li>
+    <li><a href="pull-up-counter/">Pull-Up Counter</a></li>
+    <li><a href="sit-up-counter/">Sit-Up and Crunch Counter</a></li>
+    <li><a href="burpee-counter/">Burpee Counter</a></li>
+    <li><a href="lunge-counter/">Lunge Counter</a></li>
   </ul>
-  <h2>Установите как приложение</h2>
-  <p>Счётчик можно установить на компьютер или телефон — он откроется в отдельном окне и будет
-  работать без интернета. В Chrome и Edge нажмите кнопку «Установить приложение» вверху страницы
-  или значок установки в адресной строке. На iPhone: «Поделиться» → «На экран „Домой“».</p>
+  <h2>Install it as an app</h2>
+  <p>You can install the counter on your computer or phone — it opens in its own window and works
+  offline. In Chrome or Edge, click “Install app” at the top of the page or the install icon in
+  the address bar. On iPhone: Share → Add to Home Screen.</p>
 
-  <h2>Частые вопросы</h2>
-  <h3>Это бесплатно?</h3>
-  <p>Да, полностью бесплатно, без регистрации и без рекламы.</p>
-  <h3>Работает ли счётчик без интернета?</h3>
-  <p>Да. После первого открытия страница работает офлайн, а ещё её можно установить как приложение на компьютер или телефон.</p>
-  <h3>Сохранится ли счёт, если закрыть вкладку?</h3>
-  <p>Да, счёт, план и подходы сохраняются в вашем браузере на этом устройстве. Никакие данные никуда не отправляются.</p>
-  <h3>Можно ли пользоваться на телефоне?</h3>
-  <p>Да. Каждое касание экрана добавляет одно повторение.</p>
+  <h2>FAQ</h2>
+  <h3>Is it free?</h3>
+  <p>Yes, completely free — no sign-up and no ads.</p>
+  <h3>Does the counter work offline?</h3>
+  <p>Yes. After the first visit the page works without internet, and you can install it as an app on your computer or phone.</p>
+  <h3>Will my count be saved if I close the tab?</h3>
+  <p>Yes. Your count, goal and sets are saved in your browser on this device. Nothing is sent anywhere.</p>
+  <h3>Can I use it on my phone?</h3>
+  <p>Yes. Every tap on the screen adds one rep.</p>
 
 </main>
-<footer><a href="./">Счётчик повторений</a> · бесплатно и без регистрации</footer>
-<script src="app.js?v=ade60ea5"></script>
+<footer><a href="./">Rep Counter</a> · free, no sign-up · <a href="ru/" hreflang="ru" lang="ru">Русский</a></footer>
+<script src="app.js?v=4552f0e2"></script>
 </body>
 </html>

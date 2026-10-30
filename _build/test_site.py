@@ -6,7 +6,6 @@
 Needs: pip install playwright (no browser download — it uses the installed Edge).
 """
 import json
-import re
 import sys
 import traceback
 from xml.etree import ElementTree
@@ -14,11 +13,23 @@ from xml.etree import ElementTree
 from playwright.sync_api import sync_playwright
 
 sys.path.insert(0, __import__("os").path.dirname(__file__))
-from build import PAGES  # noqa: E402
+from build import MAIN_LANG, OLD_PATHS, PAGES  # noqa: E402
 
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "https://saimant.github.io/rep-counter/").rstrip("/") + "/"
 LIVE = "https://saimant.github.io/rep-counter/"
-SW_FILES = ["", "index.html", "app.css", "app.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]
+SW_FILES = ["", "index.html", "app.css", "app.js", "manifest.webmanifest", "ru/manifest.webmanifest",
+            "icon.svg", "icon-192.png", "icon-512.png"]
+LOCALE = {"en": "en-US", "ru": "ru-RU"}
+
+# Text the counter shows, per language
+TXT = {
+    "en": {"sets": "Sets: {n}", "total": "workout total: {n}", "intro": "press space", "intro_touch": "tap the screen",
+           "first": "That’s one", "half": "Halfway", "left3": "Three to go", "done": "Done", "set": "Set saved",
+           "offer": "This page is also in English"},
+    "ru": {"sets": "Подходы: {n}", "total": "всего за тренировку: {n}", "intro": "жмите пробел",
+           "intro_touch": "касайтесь экрана", "first": "Есть первое", "half": "Половина", "left3": "Осталось три",
+           "done": "Сделано", "set": "Подход записан", "offer": "Эта страница есть на русском"},
+}
 
 results = []
 
@@ -40,7 +51,11 @@ def test(name):
 
 
 def url_of(page):
-    return BASE + (page["slug"] + "/" if page["slug"] else "")
+    return BASE + page["path"]
+
+
+def home(lang):
+    return next(p for p in PAGES if p["lang"] == lang and not p["slug"])
 
 
 def eq(actual, expected, what):
@@ -60,46 +75,64 @@ def state(p):
     })""")
 
 
+def hint(p):
+    return p.evaluate("""() => {
+        const h = document.querySelector('.hint');
+        return h && h.classList.contains('show') ? h.querySelector('span').textContent : '';
+    }""")
+
+
 # ---------------------------------------------------------------- SEO / static
 
-@test("SEO: {0[h1]}")
+@test("SEO: {0[lang]} {0[h1]}")
 def seo(page, p):
-    url = url_of(page)
-    resp = p.goto(url)
+    resp = p.goto(url_of(page))
     eq(resp.status, 200, "HTTP status")
     eq(p.title(), page["title"], "title")
     desc = p.get_attribute('meta[name="description"]', "content")
     eq(desc, page["description"], "description")
     assert 70 <= len(desc) <= 160, f"description length {len(desc)} outside 70–160 (cut off in search results)"
     assert len(p.title()) <= 60, f"title length {len(p.title())} > 60 (cut off in search results)"
-    live_url = LIVE + (page["slug"] + "/" if page["slug"] else "")
+    live_url = LIVE + page["path"]
     eq(p.get_attribute('link[rel="canonical"]', "href"), live_url, "canonical")
     eq(p.get_attribute('meta[property="og:url"]', "content"), live_url, "og:url")
+    eq(p.get_attribute("html", "lang"), page["lang"], "html lang")
     eq(p.locator("h1").count(), 1, "number of h1")
     eq(p.inner_text("h1"), page["h1"], "h1")
     assert p.get_attribute('meta[name="google-site-verification"]', "content"), "no Google verification tag"
     assert p.get_attribute('meta[name="yandex-verification"]', "content"), "no Yandex verification tag"
-    eq(p.get_attribute("html", "lang"), "ru", "lang")
+
+    # hreflang: every translation plus x-default (the English page)
+    alternates = p.evaluate("""() => Object.fromEntries([...document.querySelectorAll('link[rel="alternate"][hreflang]')]
+        .map(l => [l.hreflang, l.href]))""")
+    expected = {lang: LIVE + path for lang, path in page["alts"].items()}
+    expected["x-default"] = LIVE + page["alts"][MAIN_LANG]
+    eq(alternates, expected, "hreflang links")
+    assert live_url in alternates.values(), "hreflang must include the page itself"
+
     ld = json.loads(p.inner_text('script[type="application/ld+json"]'))
     types = [g["@type"] for g in ld["@graph"]]
     assert "WebApplication" in types and "FAQPage" in types, f"JSON-LD types {types}"
+    app_ld = next(g for g in ld["@graph"] if g["@type"] == "WebApplication")
+    eq(app_ld["inLanguage"], page["lang"], "JSON-LD inLanguage")
     if page["slug"]:
         assert "BreadcrumbList" in types, "no breadcrumbs on exercise page"
     faq = next(g for g in ld["@graph"] if g["@type"] == "FAQPage")
-    ld_questions = [q["name"] for q in faq["mainEntity"]]
-    visible = p.locator("main h3").all_inner_texts()
-    eq(ld_questions, visible, "FAQ in JSON-LD vs visible questions")
+    eq([q["name"] for q in faq["mainEntity"]], p.locator("main h3").all_inner_texts(), "FAQ in JSON-LD vs visible")
     for sel, attr in (('link[rel="stylesheet"]', "href"), ('script[src*="app.js"]', "src")):
         assert "?v=" in p.get_attribute(sel, attr), f"{sel} has no version, browsers may keep a stale copy"
     eq(p.input_value("#plan"), str(page["plan"]), "default plan")
-    presets = [int(x) for x in p.locator(".presets button").all_inner_texts()]
-    eq(presets, page["presets"], "preset buttons")
+    eq([int(x) for x in p.locator(".presets button").all_inner_texts()], page["presets"], "preset buttons")
+    # no text of the other language leaks into the page
+    body = p.inner_text("body")
+    if page["lang"] == "en":
+        assert not any("а" <= ch <= "я" for ch in body.replace("Русский", "").lower()), "Cyrillic text on an English page"
 
 
-@test("All links and assets on {0[h1]} open")
+@test("Links and assets on {0[lang]} {0[h1]} open")
 def links(page, p, req):
     p.goto(url_of(page))
-    hrefs = p.evaluate("""() => [...document.querySelectorAll('a[href], link[href], script[src]')]
+    hrefs = p.evaluate("""() => [...document.querySelectorAll('a[href], link[href]:not([rel="alternate"]):not([rel="canonical"]), script[src]')]
         .map(e => new URL(e.getAttribute('href') ?? e.getAttribute('src'), location.href))
         .filter(u => u.origin === location.origin && !u.hash)
         .map(u => u.href)""")
@@ -107,42 +140,64 @@ def links(page, p, req):
     bad = [(h, r.status) for h in sorted(set(hrefs)) if (r := req.get(h)).status != 200]
     assert not bad, f"broken: {bad}"
     og = p.get_attribute('meta[property="og:image"]', "content")
-    eq(og, f"{LIVE}og/{page['slug'] or 'home'}.png", "og:image")
-    img = req.get(og.replace(LIVE, BASE))
-    eq(img.status, 200, "og:image status")
-    png = img.body()
+    eq(og, f"{LIVE}og/{page['lang']}-{page['id']}.png", "og:image")
+    png = req.get(og.replace(LIVE, BASE)).body()
     eq((int.from_bytes(png[16:20], "big"), int.from_bytes(png[20:24], "big")), (1200, 630), "og:image size")
     eq(p.get_attribute('meta[name="twitter:card"]', "content"), "summary_large_image", "twitter:card")
+    same_lang = [q for q in PAGES if q["lang"] == page["lang"]]
     if page["slug"]:
-        others = p.locator("main .links a").count()
-        eq(others, len(PAGES) - 2, "links to other exercises")
+        eq(p.locator("main .links a").count(), len(same_lang) - 2, "links to other exercises")
+    # the footer links to the translation
+    other = {lang: path for lang, path in page["alts"].items() if lang != page["lang"]}
+    footer = p.evaluate("""() => Object.fromEntries([...document.querySelectorAll('footer a[hreflang]')]
+        .map(a => [a.hreflang, a.href]))""")
+    eq(footer, {lang: BASE + path for lang, path in other.items()}, "language switch in footer")
 
 
-@test("sitemap.xml, robots.txt, manifest")
+@test("sitemap.xml, robots.txt, manifests, offline list")
 def site_files(req):
     r = req.get(BASE + "sitemap.xml")
     eq(r.status, 200, "sitemap status")
-    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9"}
-    locs = [e.text for e in ElementTree.fromstring(r.body()).findall("s:url/s:loc", ns)]
-    eq(locs, [LIVE + (pg["slug"] + "/" if pg["slug"] else "") for pg in PAGES], "sitemap URLs")
+    ns = {"s": "http://www.sitemaps.org/schemas/sitemap/0.9", "x": "http://www.w3.org/1999/xhtml"}
+    urls = ElementTree.fromstring(r.body()).findall("s:url", ns)
+    eq([u.find("s:loc", ns).text for u in urls], [LIVE + pg["path"] for pg in PAGES], "sitemap URLs")
+    for u, pg in zip(urls, PAGES):
+        alts = {x.get("hreflang"): x.get("href") for x in u.findall("x:link", ns)}
+        eq(set(alts), {"en", "ru", "x-default"}, f"sitemap alternates of {pg['path'] or '/'}")
+    for old in OLD_PATHS:
+        assert LIVE + old not in [u.find("s:loc", ns).text for u in urls], f"old address {old} in sitemap"
     robots = req.get(BASE + "robots.txt").text()
     assert "Sitemap: " + LIVE + "sitemap.xml" in robots, "robots.txt has no sitemap line"
     assert "Allow: /" in robots and "Disallow: /\n" not in robots, "robots.txt blocks the site"
-    m = json.loads(req.get(BASE + "manifest.webmanifest").text())
-    for key in ("name", "short_name", "start_url", "display", "icons"):
-        assert m.get(key), f"manifest has no {key}"
-    for icon in m["icons"]:
-        eq(req.get(BASE + icon["src"]).status, 200, f"icon {icon['src']}")
+    for prefix, lang in (("", "en"), ("ru/", "ru")):
+        m = json.loads(req.get(BASE + prefix + "manifest.webmanifest").text())
+        eq(m["lang"], lang, f"{prefix}manifest lang")
+        for key in ("name", "short_name", "start_url", "display", "icons"):
+            assert m.get(key), f"{prefix}manifest has no {key}"
+        for icon in m["icons"]:
+            eq(req.get(BASE + prefix + icon["src"]).status, 200, f"{prefix}manifest icon {icon['src']}")
     sw = req.get(BASE + "sw.js").text()
     for pg in PAGES:
-        if pg["slug"]:
-            assert f"'{pg['slug']}/'" in sw, f"sw.js does not precache {pg['slug']}/"
+        if pg["path"]:
+            assert f"'{pg['path']}'" in sw, f"sw.js does not precache {pg['path']}"
+
+
+@test("Old Russian addresses redirect to /ru/")
+def redirects(p, req):
+    for old, new in OLD_PATHS.items():
+        html = req.get(BASE + old).text()
+        assert f'<link rel="canonical" href="{LIVE}{new}">' in html, f"{old}: no canonical to {new}"
+        p.goto(BASE + old + "#about")
+        p.wait_for_url(BASE + new + "#about")
+    p.goto(BASE)
+    eq(p.evaluate("document.documentElement.lang"), "en", "the root is now English")
 
 
 # ---------------------------------------------------------------- counter behaviour
 
-@test("Counter keys on {0[h1]}")
+@test("Counter keys on {0[lang]} {0[h1]}")
 def counter_keys(page, p):
+    t = TXT[page["lang"]]
     p.goto(url_of(page))
     plan = page["plan"]
     s = state(p)
@@ -169,9 +224,9 @@ def counter_keys(page, p):
     p.keyboard.press("Enter")
     s = state(p)
     eq(s["count"], 0, "count after finishing a set")
-    assert "Подходы: 4" in s["sets"] and "всего за тренировку: 4" in s["sets"], f"sets text: {s['sets']!r}"
+    assert t["sets"].format(n=4) in s["sets"] and t["total"].format(n=4) in s["sets"], f"sets text: {s['sets']!r}"
     p.keyboard.press("Space")
-    assert "всего за тренировку: 5" in state(p)["sets"], "total must include current set"
+    assert t["total"].format(n=5) in state(p)["sets"], "total must include current set"
 
     # held key (auto-repeat) and shortcuts must not count
     p.evaluate("""() => {
@@ -180,7 +235,6 @@ def counter_keys(page, p):
     }""")
     eq(state(p)["count"], 1, "repeat / Ctrl+Space must be ignored")
 
-    # reach the plan
     for _ in range(plan - 1):
         p.keyboard.press("Space")
     s = state(p)
@@ -190,7 +244,6 @@ def counter_keys(page, p):
     eq((s["count"], s["left"]), (plan + 1, 0), "over the plan: left stays 0")
     eq(s["bar"], "100%", "bar capped at 100%")
 
-    # R: cancel keeps, confirm resets
     p.once("dialog", lambda d: d.dismiss())
     p.keyboard.press("r")
     eq(state(p)["count"], plan + 1, "R cancelled keeps count")
@@ -200,12 +253,11 @@ def counter_keys(page, p):
     eq((s["count"], s["sets"], s["finished"]), (0, "", False), "R confirmed resets")
 
 
-@test("Plan field and presets on {0[h1]}")
+@test("Plan field and presets on {0[lang]} {0[h1]}")
 def plan_field(page, p):
     p.goto(url_of(page))
     p.click(".presets button >> nth=0")
-    first = page["presets"][0]
-    eq(state(p)["total"], first, "preset sets plan")
+    eq(state(p)["total"], page["presets"][0], "preset sets plan")
     eq(state(p)["count"], 0, "preset click must not count")
 
     p.click("#plan")
@@ -218,14 +270,12 @@ def plan_field(page, p):
     eq(p.evaluate("document.activeElement.id"), "", "Enter leaves plan field")
     eq(state(p)["sets"], "", "Enter in plan field must not record a set")
 
-    # tap on counter while the field is focused only closes it
     p.click("#plan")
     p.click(".count")
     eq(state(p)["count"], 0, "first tap after editing plan must not count")
     p.click(".count")
     eq(state(p)["count"], 1, "next tap counts")
 
-    # empty or invalid plan restores the last valid value
     p.click("#plan")
     p.fill("#plan", "")
     p.click(".count")
@@ -235,7 +285,6 @@ def plan_field(page, p):
     p.keyboard.press("Enter")
     eq((p.input_value("#plan"), state(p)["total"]), ("7", 7), "plan 0 rejected")
 
-    # taps on controls and links don't count
     before = state(p)["count"]
     p.click("h1")
     p.click(".presets button >> nth=1")
@@ -243,10 +292,12 @@ def plan_field(page, p):
     eq(state(p)["count"], before, "taps on title, presets and links must not count")
 
 
-@test("State is saved per page")
+@test("State is saved per exercise and shared by its translations")
 def persistence(p):
-    a, b = url_of(PAGES[1]), url_of(PAGES[2])
-    p.goto(a)
+    pushups_en = next(q for q in PAGES if q["lang"] == "en" and q["id"] == "pushups")
+    pushups_ru = next(q for q in PAGES if q["lang"] == "ru" and q["id"] == "pushups")
+    squats_en = next(q for q in PAGES if q["lang"] == "en" and q["id"] == "squats")
+    p.goto(url_of(pushups_en))
     for _ in range(3):
         p.keyboard.press("Space")
     p.keyboard.press("Enter")
@@ -254,11 +305,96 @@ def persistence(p):
     p.reload()
     s = state(p)
     eq(s["count"], 1, "count after reload")
-    assert "Подходы: 3" in s["sets"], f"sets after reload: {s['sets']!r}"
-    p.goto(b)
-    eq(state(p)["count"], 0, f"{PAGES[2]['slug']} must have its own count")
-    p.goto(a)
-    eq(state(p)["count"], 1, "first page keeps its count")
+    assert "Sets: 3" in s["sets"], f"sets after reload: {s['sets']!r}"
+    p.goto(url_of(squats_en))
+    eq(state(p)["count"], 0, "squats have their own count")
+    p.goto(url_of(pushups_ru))
+    s = state(p)
+    eq(s["count"], 1, "the Russian push-up page continues the same workout")
+    assert "Подходы: 3" in s["sets"], f"sets in Russian: {s['sets']!r}"
+
+
+@test("Workout hints ({0})")
+def hints(lang, p, req):
+    t = TXT[lang]
+    url = url_of(home(lang))
+    html = req.get(url).text()
+    assert t["first"] not in html and 'class="hint"' not in html, "hints must not be in the page HTML (SEO)"
+    p.goto(url)
+    assert t["intro"] in hint(p), f"intro hint on first visit: {hint(p)!r}"
+    p.keyboard.press("Space")
+    assert t["first"] in hint(p), f"first-rep hint: {hint(p)!r}"
+    for _ in range(4):
+        p.keyboard.press("Space")
+    assert t["half"] in hint(p), f"half hint at 5 of 10: {hint(p)!r}"
+    for _ in range(2):
+        p.keyboard.press("Space")
+    assert t["left3"] in hint(p), f"3-left hint at 7 of 10: {hint(p)!r}"
+    for _ in range(3):
+        p.keyboard.press("Space")
+    done = hint(p)
+    assert t["done"] in done, f"plan-done hint: {done!r}"
+    p.keyboard.press("Enter")
+    assert t["set"] in hint(p), f"set hint: {hint(p)!r}"
+    for _ in range(5):
+        p.keyboard.press("Space")
+    assert t["half"] not in hint(p), "half hint must show once per workout"
+    for _ in range(5):
+        p.keyboard.press("Space")
+    assert hint(p) and hint(p) != done, f"plan-done hint repeats with a new line: {hint(p)!r}"
+    p.wait_for_function("!document.querySelector('.hint').classList.contains('show')", timeout=7000)
+
+    p.once("dialog", lambda d: d.accept())
+    p.keyboard.press("r")
+    p.keyboard.press("Space")
+    before = state(p)["count"]
+    p.click(".hint button")
+    eq(state(p)["count"], before, "× must not count")
+    eq(hint(p), "", "× hides the hint")
+    p.reload()
+    for _ in range(10):
+        p.keyboard.press("Space")
+    eq(hint(p), "", "hints stay off after ×")
+
+
+@test("Hints get fewer after a few visits")
+def hints_regular(p):
+    t = TXT["en"]
+    p.goto(url_of(home("en")))
+    p.evaluate("localStorage.setItem('rep-counter-hints', JSON.stringify({off: false, visits: 5}))")
+    p.reload()
+    eq(hint(p), "", "no intro for a regular visitor")
+    p.keyboard.press("Space")
+    eq(hint(p), "", "no first-rep hint for a regular visitor")
+    for _ in range(4):
+        p.keyboard.press("Space")
+    assert t["half"] in hint(p), "half hint stays"
+    for _ in range(2):
+        p.keyboard.press("Space")
+    assert t["left3"] not in hint(p), "no 3-left hint for a regular visitor"
+    for _ in range(3):
+        p.keyboard.press("Space")
+    assert hint(p), "plan-done hint stays"
+
+
+@test("Offer of the other language ({0} browser on {1} page)")
+def lang_offer(browser_lang, page_lang, new_page):
+    p = new_page(locale=LOCALE[browser_lang])
+    page = next(q for q in PAGES if q["lang"] == page_lang and q["id"] == "pushups")
+    p.goto(url_of(page))
+    if browser_lang == page_lang:
+        eq(p.locator(".lang-offer").count(), 0, "no offer when the browser language matches")
+        return
+    offer = p.locator(".lang-offer")
+    assert offer.is_visible(), "offer is shown"
+    assert TXT[browser_lang]["offer"] in offer.inner_text(), f"offer text: {offer.inner_text()!r}"
+    eq(offer.locator("a").get_attribute("href"), BASE + page["alts"][browser_lang], "offer links to the translation")
+    eq(p.evaluate("location.href"), url_of(page), "never redirects by itself")
+    offer.locator("button").click()
+    eq(state(p)["count"], 0, "closing the offer must not count")
+    eq(p.locator(".lang-offer").count(), 0, "× closes the offer")
+    p.reload()
+    eq(p.locator(".lang-offer").count(), 0, "offer stays closed after ×")
 
 
 # ---------------------------------------------------------------- offline / mobile / errors
@@ -275,23 +411,23 @@ def offline(ctx):
         const c = await caches.open(names[names.length - 1]);
         return (await c.keys()).map(r => r.url);
     }""")
-    for f in SW_FILES + [pg["slug"] + "/" for pg in PAGES if pg["slug"]]:
+    for f in SW_FILES + [pg["path"] for pg in PAGES if pg["path"]]:
         assert BASE + f in cached, f"not cached: {f or '/'}"
     ctx.set_offline(True)
     try:
         for pg in PAGES:
             p.goto(url_of(pg))
-            eq(p.title(), pg["title"], f"offline title of {pg['slug'] or 'home'}")
+            eq(p.title(), pg["title"], f"offline title of {pg['path'] or '/'}")
             p.keyboard.press("Space")
             assert state(p)["count"] >= 1, "counter works offline"
     finally:
         ctx.set_offline(False)
 
 
-@test("Phone layout and buttons on {0[h1]}")
+@test("Phone layout and buttons on {0[lang]} {0[h1]}")
 def mobile(page, p):
     p.goto(url_of(page))
-    assert "касайтесь экрана" in hint(p), f"phone intro hint: {hint(p)!r}"
+    assert TXT[page["lang"]]["intro_touch"] in hint(p), f"phone intro hint: {hint(p)!r}"
     lines = p.evaluate("(() => { const s = document.querySelector('.hint span'); return Math.round(s.getBoundingClientRect().height / parseFloat(getComputedStyle(s).lineHeight)); })()")
     assert lines <= 2, f"intro hint takes {lines} lines on a phone, buttons below would jump"
     # position in the page, not the viewport: taps may scroll by a few pixels
@@ -300,11 +436,10 @@ def mobile(page, p):
     overflow = p.evaluate("document.documentElement.scrollWidth - innerWidth")
     assert overflow <= 0, f"horizontal scroll by {overflow}px"
     assert not p.is_visible(".keys"), "keyboard hints should be hidden on touch screens"
-    key = "rep-counter-v1" + (":" + page["slug"] if page["slug"] else "")
+    key = "rep-counter-v1" + (":" + page["store"] if page["store"] else "")
     for n in (88, 888):  # widest 2- and 3-digit numbers must fit on screen
         p.evaluate("([k, n]) => localStorage.setItem(k, JSON.stringify({count: n}))", [key, n])
         p.reload()
-        box = p.locator(".count").bounding_box()
         width = p.evaluate("() => { const r = document.createRange(); r.selectNodeContents(document.getElementById('count')); return r.getBoundingClientRect().width; }")
         assert width <= 375 - 16, f"{n} is {width:.0f}px wide, wider than the phone screen"
         assert p.evaluate("document.documentElement.scrollWidth - innerWidth") <= 0, f"{n} causes horizontal scroll"
@@ -319,7 +454,6 @@ def mobile(page, p):
     eq(state(p)["count"], 3, "taps count on phone")
     eq(p.evaluate(page_y), controls_y, "buttons must not move when the hint changes")
 
-    # every on-screen button is visible, big enough and above the hint line
     help_top = p.locator(".help").bounding_box()["y"]
     for btn in p.locator(".controls button:visible").all():
         b = btn.bounding_box()
@@ -330,18 +464,18 @@ def mobile(page, p):
     eq(state(p)["count"], 2, "−1 button")
     p.tap("#finish")
     s = state(p)
-    eq(s["count"], 0, "Подход button resets count")
-    assert "Подходы: 2" in s["sets"], f"Подход button records the set: {s['sets']!r}"
+    eq(s["count"], 0, "Set button resets count")
+    assert TXT[page["lang"]]["sets"].format(n=2) in s["sets"], f"Set button records the set: {s['sets']!r}"
     p.tap("#finish")
-    eq(state(p)["sets"].count("·"), 0, "Подход with 0 must not add an empty set")
+    eq(state(p)["sets"].count("·"), 0, "Set with 0 must not add an empty set")
     p.tap(".count")
     p.once("dialog", lambda d: d.dismiss())
     p.tap("#reset")
-    eq(state(p)["count"], 1, "Сброс cancelled keeps count")
+    eq(state(p)["count"], 1, "Reset cancelled keeps count")
     p.once("dialog", lambda d: d.accept())
     p.tap("#reset")
     s = state(p)
-    eq((s["count"], s["sets"]), (0, ""), "Сброс confirmed resets")
+    eq((s["count"], s["sets"]), (0, ""), "Reset confirmed resets")
 
     eq(p.get_attribute("#sound", "aria-pressed"), "true", "sound on by default")
     p.tap("#sound")
@@ -352,122 +486,56 @@ def mobile(page, p):
     eq(state(p)["count"], 0, "control buttons must not count as reps")
 
 
-def hint(p):
-    return p.evaluate("""() => {
-        const h = document.querySelector('.hint');
-        return h && h.classList.contains('show') ? h.querySelector('span').textContent : '';
-    }""")
-
-
-@test("Workout hints")
-def hints(p, req):
-    home = url_of(PAGES[0])
-    html = req.get(home).text()
-    assert "Не держите счёт" not in html and 'class="hint"' not in html, "hints must not be in the page HTML (SEO)"
-    p.goto(home)
-    assert "жмите пробел" in hint(p), f"intro hint on first visit: {hint(p)!r}"
-    p.keyboard.press("Space")
-    assert "Есть первое" in hint(p), f"first-rep hint: {hint(p)!r}"
-    for _ in range(4):
-        p.keyboard.press("Space")
-    assert "Половина" in hint(p), f"half hint at 5 of 10: {hint(p)!r}"
-    for _ in range(2):
-        p.keyboard.press("Space")
-    assert "Осталось три" in hint(p), f"3-left hint at 7 of 10: {hint(p)!r}"
-    for _ in range(3):
-        p.keyboard.press("Space")
-    done = hint(p)
-    assert "Сделано" in done, f"plan-done hint: {done!r}"
-    p.keyboard.press("Enter")
-    assert "Подход записан" in hint(p), f"set hint: {hint(p)!r}"
-    for _ in range(5):
-        p.keyboard.press("Space")
-    assert "Половина" not in hint(p), "half hint must show once per workout"
-    for _ in range(5):
-        p.keyboard.press("Space")
-    assert hint(p) and hint(p) != done, f"plan-done hint repeats with a new line: {hint(p)!r}"
-    p.wait_for_function("!document.querySelector('.hint').classList.contains('show')", timeout=7000)
-
-    # ×: hides hints for good and does not count as a rep
-    p.once("dialog", lambda d: d.accept())
-    p.keyboard.press("r")
-    p.keyboard.press("Space")
-    before = state(p)["count"]
-    p.click(".hint button")
-    eq(state(p)["count"], before, "× must not count")
-    eq(hint(p), "", "× hides the hint")
-    p.reload()
-    for _ in range(10):
-        p.keyboard.press("Space")
-    eq(hint(p), "", "hints stay off after ×")
-
-
-@test("Hints get fewer after a few visits")
-def hints_regular(p):
-    p.goto(url_of(PAGES[0]))
-    p.evaluate("localStorage.setItem('rep-counter-hints', JSON.stringify({off: false, visits: 5}))")
-    p.reload()
-    eq(hint(p), "", "no intro for a regular visitor")
-    p.keyboard.press("Space")
-    eq(hint(p), "", "no first-rep hint for a regular visitor")
-    for _ in range(4):
-        p.keyboard.press("Space")
-    assert "Половина" in hint(p), "half hint stays"
-    for _ in range(2):
-        p.keyboard.press("Space")
-    assert "Осталось три" not in hint(p), "no 3-left hint for a regular visitor"
-    for _ in range(3):
-        p.keyboard.press("Space")
-    assert hint(p), "plan-done hint stays"
-
-
 def main():
     print(f"Testing {BASE}\n")
     with sync_playwright() as pw:
         browser = pw.chromium.launch(channel="msedge")
         errors = []
+        contexts = []
 
-        def fresh(**kw):
+        def new_page(**kw):
             ctx = browser.new_context(**kw)
+            contexts.append(ctx)
             page = ctx.new_page()
             page.on("console", lambda m: m.type == "error" and errors.append(f"{page.url}: {m.text}"))
             page.on("pageerror", lambda e: errors.append(f"{page.url}: {e}"))
-            return ctx, page
+            return page
 
-        ctx, p = fresh()
+        def fresh(lang="en", **kw):
+            """A new browser profile whose language matches the page, so no language offer appears."""
+            while contexts:
+                contexts.pop().close()
+            return new_page(locale=LOCALE[lang], **kw)
+
+        p = fresh()
         for pg in PAGES:
             seo(pg, p)
-            links(pg, p, ctx.request)
-        site_files(ctx.request)
-        ctx.close()
+            links(pg, p, p.context.request)
+        site_files(p.context.request)
+        redirects(p, p.context.request)
 
         for pg in PAGES:
-            ctx, p = fresh()
-            counter_keys(pg, p)
-            ctx.close()
-            ctx, p = fresh()
-            plan_field(pg, p)
-            ctx.close()
+            counter_keys(pg, fresh(pg["lang"]))
+            plan_field(pg, fresh(pg["lang"]))
 
-        ctx, p = fresh()
-        persistence(p)
-        ctx.close()
+        persistence(fresh())
+        for lang in ("en", "ru"):
+            p = fresh(lang)
+            hints(lang, p, p.context.request)
+        hints_regular(fresh())
+        for browser_lang in ("en", "ru"):
+            for page_lang in ("en", "ru"):
+                fresh()
+                lang_offer(browser_lang, page_lang, new_page)
 
-        ctx, p = fresh()
-        hints(p, ctx.request)
-        ctx.close()
-        ctx, p = fresh()
-        hints_regular(p)
-        ctx.close()
-
-        ctx = browser.new_context()
+        while contexts:
+            contexts.pop().close()
+        ctx = browser.new_context(locale="en-US")
         offline(ctx)
         ctx.close()
 
         for pg in PAGES:
-            ctx, p = fresh(viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True)
-            mobile(pg, p)
-            ctx.close()
+            mobile(pg, fresh(pg["lang"], viewport={"width": 375, "height": 812}, is_mobile=True, has_touch=True))
 
         @test("No JavaScript errors in the console")
         def no_errors():

@@ -1,7 +1,29 @@
 // Offline support: serve from network when possible, fall back to cache.
-const CACHE = 'rep-counter-v2';
-const FILES = ['./', 'index.html', 'app.css', 'app.js', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png',
-  'otzhimaniya/', 'prisedaniya/', 'podtyagivaniya/', 'press/', 'berpi/', 'vypady/'];
+const CACHE = 'rep-counter-a1d287c0';
+const FILES = [
+  './',
+  'index.html',
+  'app.css',
+  'app.js',
+  'icon.svg',
+  'icon-192.png',
+  'icon-512.png',
+  'manifest.webmanifest',
+  'ru/manifest.webmanifest',
+  'push-up-counter/',
+  'squat-counter/',
+  'pull-up-counter/',
+  'sit-up-counter/',
+  'burpee-counter/',
+  'lunge-counter/',
+  'ru/',
+  'ru/otzhimaniya/',
+  'ru/prisedaniya/',
+  'ru/podtyagivaniya/',
+  'ru/press/',
+  'ru/berpi/',
+  'ru/vypady/',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

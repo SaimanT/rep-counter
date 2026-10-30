@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lunge Counter Online — Count Reps for Each Leg</title>
+<meta name="description" content="Count lunges with one key: track reps per leg as separate sets and see your workout total. A free online lunge counter, no sign-up, works offline.">
+<meta name="theme-color" content="#101214">
+<link rel="canonical" href="https://saimant.github.io/rep-counter/lunge-counter/">
+<link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/lunge-counter/">
+<link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/vypady/">
+<link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/lunge-counter/">
+<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
+<meta name="yandex-verification" content="9246cb77e3bfb61f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="stylesheet" href="../app.css?v=4ff69bc8">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:url" content="https://saimant.github.io/rep-counter/lunge-counter/">
+<meta property="og:title" content="Lunge Counter Online">
+<meta property="og:description" content="Count lunges with one key: track reps per leg as separate sets and see your workout total. A free online lunge counter, no sign-up, works offline.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/og/en-lunges.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Lunge Counter",
+      "url": "https://saimant.github.io/rep-counter/lunge-counter/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any (web browser)",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "Count lunges with one key: track reps per leg as separate sets and see your workout total. A free online lunge counter, no sign-up, works offline."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Do I count lunges per leg or both together?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Whichever you prefer — just count the same way every workout. Most people count each leg separately: save the left and right legs as separate sets with Enter."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many lunges should a beginner do?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Start with 3 sets of 8–10 reps per leg and add 2 reps a week."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it free, and does it work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Rep Counter",
+          "item": "https://saimant.github.io/rep-counter/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Lunge Counter",
+          "item": "https://saimant.github.io/rep-counter/lunge-counter/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-store="vypady" data-default-plan="20" data-root="../">
+<section id="app" aria-label="Counter">
+  <div class="top">
+    <h1>Lunge Counter</h1>
+    <div class="tools">
+      <button id="install" hidden>Install app</button>
+      <button id="sound" class="icon" aria-label="Sound and vibration" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Full screen">⛶</button>
+    </div>
+  </div>
+  <div class="plan">
+    <label for="plan">Goal:</label>
+    <input id="plan" type="number" min="1" inputmode="numeric" value="20">
+    <div class="presets">
+      <button data-plan="10">10</button><button data-plan="20">20</button><button data-plan="30">30</button><button data-plan="40">40</button>
+    </div>
+  </div>
+  <div class="count" id="count" aria-live="polite">0</div>
+  <div class="info">
+    Done <b id="done">0</b> of <b id="total">20</b>
+    &nbsp;·&nbsp; <span class="left"><b id="left">20</b> left</span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Remove one rep">−1</button>
+    <button id="finish">✓ Set</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="help">
+    <span class="keys"><kbd>Space</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> finish set &nbsp;
+    <kbd>R</kbd> reset &nbsp; <kbd>F</kbd> full screen<br></span>
+    Tap the screen to add a rep · <a href="#about">How it works ↓</a>
+  </div>
+</section>
+
+<main id="about">
+  <h2>How to count lunges</h2>
+  <p>Press space or tap the screen as you return to standing. For alternating lunges, count every
+  step: a goal of 20 means 10 per leg. If you do one leg first and then the other, save them as
+  separate sets with Enter.</p>
+
+  <p><b>Controls:</b> Space +1, Backspace −1, Enter finishes a set, R resets.
+  On a phone, tap the screen and use the buttons under the counter. <a href="../#about">More about the counter</a>.</p>
+  <h2>How many lunges should you do?</h2>
+  <ul>
+    <li><b>Beginner:</b> 3 sets of 8–10 per leg.</li>
+    <li><b>Intermediate:</b> 3–4 sets of 12–15 per leg, optionally with dumbbells.</li>
+  </ul>
+
+  <h2>Form in brief</h2>
+  <ul>
+    <li>Take a step long enough for both knees to bend to about 90°.</li>
+    <li>Front knee stays over the foot — not far past the toes and not caving in.</li>
+    <li>Keep your torso upright and lower straight down.</li>
+  </ul>
+
+  <h2>FAQ</h2>
+  <h3>Do I count lunges per leg or both together?</h3>
+  <p>Whichever you prefer — just count the same way every workout. Most people count each leg separately: save the left and right legs as separate sets with Enter.</p>
+  <h3>How many lunges should a beginner do?</h3>
+  <p>Start with 3 sets of 8–10 reps per leg and add 2 reps a week.</p>
+  <h3>Is it free, and does it work offline?</h3>
+  <p>Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser.</p>
+  <h2>More counters</h2>
+  <ul class="links">
+    <li><a href="../push-up-counter/">Push-Up Counter</a></li>
+    <li><a href="../squat-counter/">Squat Counter</a></li>
+    <li><a href="../pull-up-counter/">Pull-Up Counter</a></li>
+    <li><a href="../sit-up-counter/">Sit-Up and Crunch Counter</a></li>
+    <li><a href="../burpee-counter/">Burpee Counter</a></li>
+  </ul>
+</main>
+<footer><a href="../">Rep Counter</a> · free, no sign-up · <a href="../ru/vypady/" hreflang="ru" lang="ru">Русский</a></footer>
+<script src="../app.js?v=4552f0e2"></script>
+</body>
+</html>

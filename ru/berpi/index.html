@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Счётчик берпи онлайн — считайте берпи и подходы</title>
+<meta name="description" content="Онлайн-счётчик берпи: задайте план, нажимайте пробел после каждого повторения и следите, сколько осталось. Подходы складываются в общий итог. Бесплатно.">
+<meta name="theme-color" content="#101214">
+<link rel="canonical" href="https://saimant.github.io/rep-counter/ru/berpi/">
+<link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/burpee-counter/">
+<link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/berpi/">
+<link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/burpee-counter/">
+<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
+<meta name="yandex-verification" content="9246cb77e3bfb61f">
+<link rel="manifest" href="../../ru/manifest.webmanifest">
+<link rel="icon" href="../../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../icon-192.png">
+<link rel="stylesheet" href="../../app.css?v=4ff69bc8">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://saimant.github.io/rep-counter/ru/berpi/">
+<meta property="og:title" content="Счётчик берпи онлайн">
+<meta property="og:description" content="Онлайн-счётчик берпи: задайте план, нажимайте пробел после каждого повторения и следите, сколько осталось. Подходы складываются в общий итог. Бесплатно.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/og/ru-burpees.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Счётчик берпи",
+      "url": "https://saimant.github.io/rep-counter/ru/berpi/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Любая (браузер)",
+      "inLanguage": "ru",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "description": "Онлайн-счётчик берпи: задайте план, нажимайте пробел после каждого повторения и следите, сколько осталось. Подходы складываются в общий итог. Бесплатно."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Сколько берпи нужно делать?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Начните с 3 подходов по 10 и прибавляйте по 1–2 повторения в подход каждую неделю. Для интенсивной тренировки делают 50–100 берпи за сессию."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Как не сбиться со счёта на берпи?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Жмите пробел или касайтесь экрана сразу после прыжка — счётчик ведёт счёт за вас, а строка «осталось» показывает, сколько до плана."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Это бесплатно и работает без интернета?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да: без регистрации и рекламы, а после первого открытия страница работает офлайн. Счёт сохраняется в браузере."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Счётчик повторений",
+          "item": "https://saimant.github.io/rep-counter/ru/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Счётчик берпи",
+          "item": "https://saimant.github.io/rep-counter/ru/berpi/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-store="berpi" data-default-plan="15" data-root="../../">
+<section id="app" aria-label="Счётчик">
+  <div class="top">
+    <h1>Счётчик берпи</h1>
+    <div class="tools">
+      <button id="install" hidden>Установить приложение</button>
+      <button id="sound" class="icon" aria-label="Звук и вибрация" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Полный экран">⛶</button>
+    </div>
+  </div>
+  <div class="plan">
+    <label for="plan">План:</label>
+    <input id="plan" type="number" min="1" inputmode="numeric" value="15">
+    <div class="presets">
+      <button data-plan="10">10</button><button data-plan="15">15</button><button data-plan="20">20</button><button data-plan="30">30</button><button data-plan="50">50</button>
+    </div>
+  </div>
+  <div class="count" id="count" aria-live="polite">0</div>
+  <div class="info">
+    Сделано <b id="done">0</b> из <b id="total">15</b>
+    &nbsp;·&nbsp; <span class="left">осталось <b id="left">15</b></span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Убрать одно повторение">−1</button>
+    <button id="finish">✓ Подход</button>
+    <button id="reset">Сброс</button>
+  </div>
+  <div class="help">
+    <span class="keys"><kbd>Пробел</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> закончить подход &nbsp;
+    <kbd>R</kbd> сброс &nbsp; <kbd>F</kbd> полный экран<br></span>
+    Нажмите на экран, чтобы добавить повторение · <a href="#about">Как пользоваться ↓</a>
+  </div>
+</section>
+
+<main id="about">
+  <h2>Как считать берпи</h2>
+  <p>Берпи — быстрое упражнение, и к середине подхода счёт сбивается почти у всех. Поставьте
+  экран перед собой и в конце каждого прыжка нажимайте пробел или касайтесь телефона на полу —
+  счётчик покажет, сколько осталось до плана.</p>
+
+  <p><b>Управление:</b> пробел — +1, Backspace — −1, Enter — закончить подход, R — сбросить.
+  На телефоне — касание экрана и кнопки под счётчиком. <a href="../../ru/#about">Подробнее о счётчике</a>.</p>
+  <h2>Сколько берпи делать</h2>
+  <ul>
+    <li><b>Новичок:</b> 3 подхода по 5–10 повторений, можно без отжимания и прыжка.</li>
+    <li><b>Средний уровень:</b> 3–5 подходов по 10–20.</li>
+    <li><b>Челлендж «100 берпи»:</b> план 100, разбивайте на подходы и записывайте их клавишей Enter.</li>
+  </ul>
+
+  <h2>Техника: коротко</h2>
+  <ul>
+    <li>Присед → упор лёжа → отжимание → обратно в присед → прыжок вверх с хлопком над головой.</li>
+    <li>В упоре держите корпус прямым, не провисайте.</li>
+    <li>Приземляйтесь мягко, на полусогнутые ноги.</li>
+  </ul>
+
+  <h2>Частые вопросы</h2>
+  <h3>Сколько берпи нужно делать?</h3>
+  <p>Начните с 3 подходов по 10 и прибавляйте по 1–2 повторения в подход каждую неделю. Для интенсивной тренировки делают 50–100 берпи за сессию.</p>
+  <h3>Как не сбиться со счёта на берпи?</h3>
+  <p>Жмите пробел или касайтесь экрана сразу после прыжка — счётчик ведёт счёт за вас, а строка «осталось» показывает, сколько до плана.</p>
+  <h3>Это бесплатно и работает без интернета?</h3>
+  <p>Да: без регистрации и рекламы, а после первого открытия страница работает офлайн. Счёт сохраняется в браузере.</p>
+  <h2>Другие счётчики</h2>
+  <ul class="links">
+    <li><a href="../../ru/otzhimaniya/">Счётчик отжиманий</a></li>
+    <li><a href="../../ru/prisedaniya/">Счётчик приседаний</a></li>
+    <li><a href="../../ru/podtyagivaniya/">Счётчик подтягиваний</a></li>
+    <li><a href="../../ru/press/">Счётчик упражнений на пресс</a></li>
+    <li><a href="../../ru/vypady/">Счётчик выпадов</a></li>
+  </ul>
+</main>
+<footer><a href="../../ru/">Счётчик повторений</a> · бесплатно и без регистрации · <a href="../../burpee-counter/" hreflang="en" lang="en">English</a></footer>
+<script src="../../app.js?v=4552f0e2"></script>
+</body>
+</html>

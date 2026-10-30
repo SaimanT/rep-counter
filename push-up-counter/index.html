@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Push-Up Counter Online — Count Push-Ups and Sets</title>
+<meta name="description" content="Free push-up counter: set a goal, press space or tap the screen after each push-up. See how many are left while your sets add up to a total.">
+<meta name="theme-color" content="#101214">
+<link rel="canonical" href="https://saimant.github.io/rep-counter/push-up-counter/">
+<link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/push-up-counter/">
+<link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/otzhimaniya/">
+<link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/push-up-counter/">
+<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
+<meta name="yandex-verification" content="9246cb77e3bfb61f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="stylesheet" href="../app.css?v=4ff69bc8">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:url" content="https://saimant.github.io/rep-counter/push-up-counter/">
+<meta property="og:title" content="Push-Up Counter Online">
+<meta property="og:description" content="Free push-up counter: set a goal, press space or tap the screen after each push-up. See how many are left while your sets add up to a total.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/og/en-pushups.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Push-Up Counter",
+      "url": "https://saimant.github.io/rep-counter/push-up-counter/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any (web browser)",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "Free push-up counter: set a goal, press space or tap the screen after each push-up. See how many are left while your sets add up to a total."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How many push-ups should I do a day?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It depends on your level. Beginners do well with 20–30 push-ups spread over a few sets, trained people with 50–100. Consistency and clean form matter more than a record number."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I count push-ups with my phone?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Put your phone on the floor in front of you and tap the screen at the top of each rep — every tap counts one push-up."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it free, and does it work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Rep Counter",
+          "item": "https://saimant.github.io/rep-counter/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Push-Up Counter",
+          "item": "https://saimant.github.io/rep-counter/push-up-counter/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-store="otzhimaniya" data-default-plan="20" data-root="../">
+<section id="app" aria-label="Counter">
+  <div class="top">
+    <h1>Push-Up Counter</h1>
+    <div class="tools">
+      <button id="install" hidden>Install app</button>
+      <button id="sound" class="icon" aria-label="Sound and vibration" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Full screen">⛶</button>
+    </div>
+  </div>
+  <div class="plan">
+    <label for="plan">Goal:</label>
+    <input id="plan" type="number" min="1" inputmode="numeric" value="20">
+    <div class="presets">
+      <button data-plan="10">10</button><button data-plan="20">20</button><button data-plan="30">30</button><button data-plan="50">50</button><button data-plan="100">100</button>
+    </div>
+  </div>
+  <div class="count" id="count" aria-live="polite">0</div>
+  <div class="info">
+    Done <b id="done">0</b> of <b id="total">20</b>
+    &nbsp;·&nbsp; <span class="left"><b id="left">20</b> left</span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Remove one rep">−1</button>
+    <button id="finish">✓ Set</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="help">
+    <span class="keys"><kbd>Space</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> finish set &nbsp;
+    <kbd>R</kbd> reset &nbsp; <kbd>F</kbd> full screen<br></span>
+    Tap the screen to add a rep · <a href="#about">How it works ↓</a>
+  </div>
+</section>
+
+<main id="about">
+  <h2>How to count push-ups</h2>
+  <p>Place your laptop or phone where you can see it from the plank position. Press space after
+  every push-up — or put your phone on the floor in front of you and tap the screen. The big numbers
+  are visible out of the corner of your eye, and the “left” line helps you finish the set.</p>
+
+  <p><b>Controls:</b> Space +1, Backspace −1, Enter finishes a set, R resets.
+  On a phone, tap the screen and use the buttons under the counter. <a href="../#about">More about the counter</a>.</p>
+  <h2>How many push-ups should you do?</h2>
+  <ul>
+    <li><b>Beginner:</b> 3 sets of 5–10 reps, on your knees or against a bench if needed.</li>
+    <li><b>Intermediate:</b> 3–4 sets of 15–25 reps.</li>
+    <li><b>“100 push-ups a day” challenge:</b> set a goal of 100 and do it in sets throughout the
+      day — press Enter after each one and the counter shows your daily total.</li>
+  </ul>
+  <p>Add 1–2 reps per set every few workouts for steady progress.</p>
+
+  <h2>Form in brief</h2>
+  <ul>
+    <li>Keep a straight line from head to heels — don't let your hips sag.</li>
+    <li>Elbows at about 45° to your body, not flared out.</li>
+    <li>Lower until your chest nearly touches the floor, then fully straighten your arms.</li>
+    <li>Count only clean reps — that's what the counter is for.</li>
+  </ul>
+
+  <h2>FAQ</h2>
+  <h3>How many push-ups should I do a day?</h3>
+  <p>It depends on your level. Beginners do well with 20–30 push-ups spread over a few sets, trained people with 50–100. Consistency and clean form matter more than a record number.</p>
+  <h3>Can I count push-ups with my phone?</h3>
+  <p>Yes. Put your phone on the floor in front of you and tap the screen at the top of each rep — every tap counts one push-up.</p>
+  <h3>Is it free, and does it work offline?</h3>
+  <p>Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser.</p>
+  <h2>More counters</h2>
+  <ul class="links">
+    <li><a href="../squat-counter/">Squat Counter</a></li>
+    <li><a href="../pull-up-counter/">Pull-Up Counter</a></li>
+    <li><a href="../sit-up-counter/">Sit-Up and Crunch Counter</a></li>
+    <li><a href="../burpee-counter/">Burpee Counter</a></li>
+    <li><a href="../lunge-counter/">Lunge Counter</a></li>
+  </ul>
+</main>
+<footer><a href="../">Rep Counter</a> · free, no sign-up · <a href="../ru/otzhimaniya/" hreflang="ru" lang="ru">Русский</a></footer>
+<script src="../app.js?v=4552f0e2"></script>
+</body>
+</html>

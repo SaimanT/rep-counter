@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pull-Up Counter Online — Track Sets and Total Reps</title>
+<meta name="description" content="Count pull-ups set by set and see your workout total. Press space or tap the screen to add reps. A free online pull-up counter that works offline.">
+<meta name="theme-color" content="#101214">
+<link rel="canonical" href="https://saimant.github.io/rep-counter/pull-up-counter/">
+<link rel="alternate" hreflang="en" href="https://saimant.github.io/rep-counter/pull-up-counter/">
+<link rel="alternate" hreflang="ru" href="https://saimant.github.io/rep-counter/ru/podtyagivaniya/">
+<link rel="alternate" hreflang="x-default" href="https://saimant.github.io/rep-counter/pull-up-counter/">
+<meta name="google-site-verification" content="_M29k6wRQseVUyZRi4jtbQvlDl-PdW_5S8K-UQpaX8g">
+<meta name="yandex-verification" content="9246cb77e3bfb61f">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<link rel="stylesheet" href="../app.css?v=4ff69bc8">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:url" content="https://saimant.github.io/rep-counter/pull-up-counter/">
+<meta property="og:title" content="Pull-Up Counter Online">
+<meta property="og:description" content="Count pull-ups set by set and see your workout total. Press space or tap the screen to add reps. A free online pull-up counter that works offline.">
+<meta property="og:image" content="https://saimant.github.io/rep-counter/og/en-pullups.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "name": "Pull-Up Counter",
+      "url": "https://saimant.github.io/rep-counter/pull-up-counter/",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any (web browser)",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "description": "Count pull-ups set by set and see your workout total. Press space or tap the screen to add reps. A free online pull-up counter that works offline."
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How can I do more pull-ups?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Train 2–3 times a week, do many sets with few reps each and don't take every set to failure. Save your sets to see your progress."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I track a ladder workout?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Press Enter after each step — you'll see every set, like “1 · 2 · 3 · 4 · 5”, and the total."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it free, and does it work offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Rep Counter",
+          "item": "https://saimant.github.io/rep-counter/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Pull-Up Counter",
+          "item": "https://saimant.github.io/rep-counter/pull-up-counter/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body data-store="podtyagivaniya" data-default-plan="10" data-root="../">
+<section id="app" aria-label="Counter">
+  <div class="top">
+    <h1>Pull-Up Counter</h1>
+    <div class="tools">
+      <button id="install" hidden>Install app</button>
+      <button id="sound" class="icon" aria-label="Sound and vibration" aria-pressed="true">🔊</button>
+      <button id="fullscreen" class="icon" aria-label="Full screen">⛶</button>
+    </div>
+  </div>
+  <div class="plan">
+    <label for="plan">Goal:</label>
+    <input id="plan" type="number" min="1" inputmode="numeric" value="10">
+    <div class="presets">
+      <button data-plan="5">5</button><button data-plan="8">8</button><button data-plan="10">10</button><button data-plan="15">15</button><button data-plan="20">20</button>
+    </div>
+  </div>
+  <div class="count" id="count" aria-live="polite">0</div>
+  <div class="info">
+    Done <b id="done">0</b> of <b id="total">10</b>
+    &nbsp;·&nbsp; <span class="left"><b id="left">10</b> left</span>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="sets" id="sets"></div>
+  <div class="controls">
+    <button id="minus" aria-label="Remove one rep">−1</button>
+    <button id="finish">✓ Set</button>
+    <button id="reset">Reset</button>
+  </div>
+  <div class="help">
+    <span class="keys"><kbd>Space</kbd> +1 &nbsp; <kbd>Backspace</kbd> −1 &nbsp; <kbd>Enter</kbd> finish set &nbsp;
+    <kbd>R</kbd> reset &nbsp; <kbd>F</kbd> full screen<br></span>
+    Tap the screen to add a rep · <a href="#about">How it works ↓</a>
+  </div>
+</section>
+
+<main id="about">
+  <h2>How to count pull-ups</h2>
+  <p>Your hands are busy on the bar, so count after the set: drop down, press space for each rep and
+  Enter to save the set. Or have a partner press for you. Either way, the counter adds up all your
+  sets and shows how many pull-ups you did in the whole workout.</p>
+
+  <p><b>Controls:</b> Space +1, Backspace −1, Enter finishes a set, R resets.
+  On a phone, tap the screen and use the buttons under the counter. <a href="../#about">More about the counter</a>.</p>
+  <h2>How many pull-ups should you do?</h2>
+  <ul>
+    <li><b>Can't do one yet:</b> negatives (slow lowering) and band-assisted pull-ups.</li>
+    <li><b>1–5 reps:</b> 4–6 sets of 1–3 reps, stopping short of failure.</li>
+    <li><b>5–10 reps:</b> 3–5 sets at 60–80% of your max.</li>
+    <li><b>Ladder:</b> 1, 2, 3, 4… reps per set — save each step with Enter.</li>
+  </ul>
+
+  <h2>Form in brief</h2>
+  <ul>
+    <li>Start from a dead hang with straight arms, no swinging.</li>
+    <li>Bring your chin above the bar.</li>
+    <li>Squeeze your shoulder blades and drive your elbows down instead of just bending your arms.</li>
+  </ul>
+
+  <h2>FAQ</h2>
+  <h3>How can I do more pull-ups?</h3>
+  <p>Train 2–3 times a week, do many sets with few reps each and don&#x27;t take every set to failure. Save your sets to see your progress.</p>
+  <h3>Can I track a ladder workout?</h3>
+  <p>Yes. Press Enter after each step — you&#x27;ll see every set, like “1 · 2 · 3 · 4 · 5”, and the total.</p>
+  <h3>Is it free, and does it work offline?</h3>
+  <p>Yes: no sign-up, no ads, and after the first visit the page works without internet. Your count is saved in the browser.</p>
+  <h2>More counters</h2>
+  <ul class="links">
+    <li><a href="../push-up-counter/">Push-Up Counter</a></li>
+    <li><a href="../squat-counter/">Squat Counter</a></li>
+    <li><a href="../sit-up-counter/">Sit-Up and Crunch Counter</a></li>
+    <li><a href="../burpee-counter/">Burpee Counter</a></li>
+    <li><a href="../lunge-counter/">Lunge Counter</a></li>
+  </ul>
+</main>
+<footer><a href="../">Rep Counter</a> · free, no sign-up · <a href="../ru/podtyagivaniya/" hreflang="ru" lang="ru">Русский</a></footer>
+<script src="../app.js?v=4552f0e2"></script>
+</body>
+</html>

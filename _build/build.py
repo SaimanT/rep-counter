@@ -74,6 +74,7 @@ TEMPLATE = """<!doctype html>
     <h1>{h1}</h1>
     <div class="tools">
       <button id="install" hidden>{install}</button>
+      <button id="one" class="icon" aria-label="{one}" title="{one}" aria-pressed="false">1×</button>
       <button id="sound" class="icon" aria-label="{sound}" aria-pressed="true">🔊</button>
       <button id="fullscreen" class="icon" aria-label="{fullscreen}">⛶</button>
     </div>
@@ -204,7 +205,7 @@ def render(page):
         css_v=version("app.css"), js_v=version("app.js"), og_locale=ui["og_locale"], og_alt_locales=og_alt_locales,
         og_title_suffix=ui["og_title_suffix"], h1=escape(page["h1"]), jsonld=jsonld(page, url),
         store=page["store"], plan=page["plan"], presets=presets, info=ui["info"].format(plan=page["plan"]),
-        app_label=ui["app_label"], install=ui["install"], sound=ui["sound"], fullscreen=ui["fullscreen"],
+        app_label=ui["app_label"], install=ui["install"], one=ui["one"], sound=ui["sound"], fullscreen=ui["fullscreen"],
         plan_label=ui["plan"], minus=ui["minus"], finish=ui["finish"], reset=ui["reset"], keys=ui["keys"],
         tap=ui["tap"], howto_link=ui["howto_link"], body=body, faq_title=ui["faq_title"], faq=faq, more=more,
         home_name=ui["home_name"], footer_tail=ui["footer_tail"], switch=switch,

@@ -3,7 +3,8 @@
 UI = {
     "lang": "en", "prefix": "", "og_locale": "en_US", "currency": "USD", "os": "Any (web browser)",
     "home_name": "Rep Counter", "og_title_suffix": " Online", "app_label": "Counter",
-    "install": "Install app", "sound": "Sound and vibration", "fullscreen": "Full screen",
+    "install": "Install app", "one": "“Just one” mode: hide the goal and reps left",
+"sound": "Sound and vibration", "fullscreen": "Full screen",
     "plan": "Goal:",
     "info": 'Done <b id="done">0</b> of <b id="total">{plan}</b>\n    &nbsp;·&nbsp; '
             '<span class="left"><b id="left">{plan}</b> left</span>',

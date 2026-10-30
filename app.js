@@ -9,28 +9,34 @@
       sets: (list, total) => `Sets: ${list}  —  workout total: ${total}`,
       reset: 'Reset the counter and sets?',
       hide: 'Don’t show tips again',
-      intro: ['Don’t count in your head — press space and keep your focus on form.',
-        'Don’t count in your head — tap the screen and keep your focus on form.'],
-      first: 'That’s one. Every tap is a mark of progress.',
-      half: 'Halfway there. Watch “left” melt away.',
-      left3: 'Three to go. The finish line is in sight.',
-      done: ['Done. You decided — and you did it.', 'Goal reached. That’s willpower.',
-        'Done. One more small win.'],
-      set: 'Set saved. Your workout total is below.',
+      // The "one rep at a time" method: never look past the next rep
+      intro: ['Just one rep. Do it, then press space.', 'Just one rep. Do it, then tap the screen.'],
+      first: 'One done. Now just one more.',
+      half: n => `You didn’t do half. You did one, ${n} times.`,
+      done: [n => n >= 3 ? `${n} times just one. That’s all it took.` : 'Done. One at a time.',
+        'Done. You decided — and you did it.', 'Done. One more small win.'],
+      pause: ['Forget the rest. Just the next one. The 1× button hides the goal.',
+        'Forget the rest. Just the next one.'],
+      oneOn: '“Just one” mode: no goal, no countdown. Only the next rep.',
+      oneStep: n => `${n} times just one.`,
+      set: 'Set saved. Rest — then again, just one.',
       offer: 'Эта страница есть на русском', offerGo: 'Открыть',
     },
     ru: {
       sets: (list, total) => `Подходы: ${list}  —  всего за тренировку: ${total}`,
       reset: 'Сбросить счётчик и подходы?',
       hide: 'Больше не показывать подсказки',
-      intro: ['Не считайте в уме — жмите пробел, а внимание — на технику.',
-        'Не считайте в уме — касайтесь экрана, а внимание — на технику.'],
-      first: 'Есть первое. Каждое нажатие — отметка прогресса.',
-      half: 'Половина позади. Смотрите, как тает «осталось».',
-      left3: 'Осталось три. Финиш уже виден.',
-      done: ['Сделано. Вы решили — и выполнили.', 'План выполнен. Это и есть сила воли.',
-        'Готово. Ещё одна маленькая победа.'],
-      set: 'Подход записан. Внизу — ваш итог за тренировку.',
+      intro: ['Только одно повторение. Сделайте — и нажмите пробел.',
+        'Только одно повторение. Сделайте — и коснитесь экрана.'],
+      first: 'Одно есть. Теперь — ещё одно.',
+      half: n => `Вы не делали половину — вы сделали ${n} раз по одному.`,
+      done: [n => n >= 3 ? `${n} раз по одному. Вот и всё.` : 'Сделано. По одному.',
+        'Сделано. Вы решили — и выполнили.', 'Готово. Ещё одна маленькая победа.'],
+      pause: ['Не думайте обо всех — только о следующем. Кнопка 1× скроет план.',
+        'Не думайте обо всех. Только о следующем.'],
+      oneOn: 'Режим «Только одно»: без плана и остатка. Только следующее.',
+      oneStep: n => `${n} раз по одному.`,
+      set: 'Подход записан. Отдохните — и снова только одно.',
       offer: 'This page is also in English', offerGo: 'Open',
     },
   }[lang];
@@ -113,11 +119,41 @@
   function hideHint() { hintBox.classList.remove('show'); }
 
   function hintForCount() {
-    const { count, plan } = state, left = plan - count;
-    if (count === plan) showHint('done', T.done[doneLine++ % T.done.length]);
-    else if (left === 3 && plan >= 8 && newcomer) showHint('left3', T.left3);
-    else if (count === Math.ceil(plan / 2) && plan >= 6) showHint('half', T.half);
-    else if (count === 1 && newcomer) showHint('first', T.first);
+    const { count, plan } = state;
+    if (count === 1 && newcomer) return showHint('first', T.first);
+    // "Just one" mode hides the goal, so hints don't mention it either
+    if (oneMode) { if (count % 5 === 0) showHint('one' + count, T.oneStep(count)); return; }
+    if (count === plan) {
+      const line = T.done[doneLine++ % T.done.length];
+      showHint('done', typeof line === 'function' ? line(count) : line);
+    } else if (count === Math.ceil(plan / 2) && plan >= 6) showHint('half', T.half(count));
+  }
+
+  // A long pause between reps is when it's hardest: remind to think only of the next one
+  const PAUSE_MS = 15000;
+  let pauseTimer, pauses = 0;
+  function watchPause() {
+    clearTimeout(pauseTimer);
+    pauseTimer = setTimeout(() => {
+      if (document.hidden || state.count === 0 || (!oneMode && state.count >= state.plan) || pauses >= 2) return;
+      showHint('pause' + pauses, T.pause[pauses === 0 && !oneMode ? 0 : 1], 6000);
+      pauses++;
+    }, PAUSE_MS);
+  }
+
+  // "Just one" mode: only the count is on screen, no goal and no countdown
+  const ONE_KEY = 'rep-counter-one';
+  let oneMode = false;
+  try { oneMode = localStorage.getItem(ONE_KEY) === '1'; } catch (e) {}
+  function applyOne() {
+    app.classList.toggle('one', oneMode);
+    $('one').setAttribute('aria-pressed', oneMode);
+  }
+  function toggleOne() {
+    oneMode = !oneMode;
+    try { localStorage.setItem(ONE_KEY, oneMode ? '1' : '0'); } catch (e) {}
+    applyOne();
+    if (oneMode) showHint('oneOn', T.oneOn, 5000);
   }
 
   function add(n) {
@@ -128,18 +164,21 @@
       vibrate(reached ? [80, 60, 80, 60, 200] : 25);
     }
     render(n > 0);
-    if (n > 0) hintForCount();
+    if (n > 0) { hintForCount(); watchPause(); }
   }
 
   function finishSet() {
     if (state.count > 0) {
-      state.sets.push(state.count); state.count = 0; render();
+      state.sets.push(state.count); state.count = 0; render(); clearTimeout(pauseTimer);
       if (newcomer) showHint('set', T.set);
     }
   }
 
   function reset() {
-    if (confirm(T.reset)) { state.count = 0; state.sets = []; render(); shown.clear(); hideHint(); }
+    if (confirm(T.reset)) {
+      state.count = 0; state.sets = []; render();
+      shown.clear(); hideHint(); clearTimeout(pauseTimer); pauses = 0;
+    }
   }
 
   function toggleFullscreen() {
@@ -158,7 +197,7 @@
   const buttons = {
     minus: () => add(-1), finish: finishSet, reset,
     sound: () => { state.sound = !state.sound; render(); },
-    fullscreen: toggleFullscreen,
+    fullscreen: toggleFullscreen, one: toggleOne,
   };
   for (const [id, action] of Object.entries(buttons)) {
     $(id).addEventListener('click', e => { action(); e.currentTarget.blur(); });
@@ -207,6 +246,7 @@
     navigator.serviceWorker.register(root + 'sw.js').catch(() => {});
   }
 
+  applyOne();
   render();
   if (newcomer && state.count === 0 && !state.sets.length) showHint('intro', T.intro[isTouch ? 1 : 0], 7000);
 

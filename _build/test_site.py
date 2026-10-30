@@ -23,12 +23,13 @@ LOCALE = {"en": "en-US", "ru": "ru-RU"}
 
 # Text the counter shows, per language
 TXT = {
-    "en": {"sets": "Sets: {n}", "total": "workout total: {n}", "intro": "press space", "intro_touch": "tap the screen",
-           "first": "That’s one", "half": "Halfway", "left3": "Three to go", "done": "Done", "set": "Set saved",
-           "offer": "This page is also in English"},
-    "ru": {"sets": "Подходы: {n}", "total": "всего за тренировку: {n}", "intro": "жмите пробел",
-           "intro_touch": "касайтесь экрана", "first": "Есть первое", "half": "Половина", "left3": "Осталось три",
-           "done": "Сделано", "set": "Подход записан", "offer": "Эта страница есть на русском"},
+    "en": {"sets": "Sets: {n}", "total": "workout total: {n}", "intro": "Just one rep", "key": "press space",
+           "intro_touch": "tap the screen", "first": "One done", "half": "You did one, 5 times",
+           "done": "10 times just one", "set": "Set saved", "offer": "This page is also in English"},
+    "ru": {"sets": "Подходы: {n}", "total": "всего за тренировку: {n}", "intro": "Только одно повторение",
+           "key": "нажмите пробел", "intro_touch": "коснитесь экрана", "first": "Одно есть",
+           "half": "вы сделали 5 раз по одному", "done": "10 раз по одному", "set": "Подход записан",
+           "offer": "Эта страница есть на русском"},
 }
 
 results = []
@@ -321,16 +322,13 @@ def hints(lang, p, req):
     html = req.get(url).text()
     assert t["first"] not in html and 'class="hint"' not in html, "hints must not be in the page HTML (SEO)"
     p.goto(url)
-    assert t["intro"] in hint(p), f"intro hint on first visit: {hint(p)!r}"
+    assert t["intro"] in hint(p) and t["key"] in hint(p), f"intro hint on first visit: {hint(p)!r}"
     p.keyboard.press("Space")
     assert t["first"] in hint(p), f"first-rep hint: {hint(p)!r}"
     for _ in range(4):
         p.keyboard.press("Space")
     assert t["half"] in hint(p), f"half hint at 5 of 10: {hint(p)!r}"
-    for _ in range(2):
-        p.keyboard.press("Space")
-    assert t["left3"] in hint(p), f"3-left hint at 7 of 10: {hint(p)!r}"
-    for _ in range(3):
+    for _ in range(5):
         p.keyboard.press("Space")
     done = hint(p)
     assert t["done"] in done, f"plan-done hint: {done!r}"
@@ -369,12 +367,55 @@ def hints_regular(p):
     for _ in range(4):
         p.keyboard.press("Space")
     assert t["half"] in hint(p), "half hint stays"
-    for _ in range(2):
+    for _ in range(5):
         p.keyboard.press("Space")
-    assert t["left3"] not in hint(p), "no 3-left hint for a regular visitor"
-    for _ in range(3):
+    assert t["done"] in hint(p), "plan-done hint stays"
+
+
+# Pauses are 15 s on the site; tests shorten them so they don't wait
+FAST_PAUSE = """(() => { const st = window.setTimeout;
+    window.setTimeout = (f, ms, ...a) => st(f, ms === 15000 ? 150 : ms, ...a); })()"""
+
+
+@test("Pause hint: only the next rep")
+def pause_hint(p):
+    p.add_init_script(FAST_PAUSE)
+    p.goto(url_of(home("en")))
+    p.wait_for_timeout(400)
+    assert "Forget the rest" not in hint(p), "no pause hint before the first rep"
+    p.keyboard.press("Space")
+    p.wait_for_timeout(400)
+    assert "Forget the rest" in hint(p) and "1×" in hint(p), f"first pause mentions the 1× button: {hint(p)!r}"
+    p.keyboard.press("Space")
+    p.wait_for_timeout(400)
+    eq(hint(p), "Forget the rest. Just the next one.", "second pause")
+    p.evaluate("document.querySelector('.hint').classList.remove('show')")
+    p.keyboard.press("Space")
+    p.wait_for_timeout(400)
+    eq(hint(p), "", "at most two pause hints per workout")
+
+
+@test("“Just one” mode")
+def one_mode(p):
+    page = next(q for q in PAGES if q["lang"] == "en" and q["id"] == "pushups")
+    p.goto(url_of(page))
+    p.click("#one")
+    eq(p.get_attribute("#one", "aria-pressed"), "true", "1× is on")
+    for sel in (".plan", ".info", ".progress"):
+        assert not p.is_visible(sel), f"{sel} must be hidden in “Just one” mode"
+    assert "“Just one” mode" in hint(p), f"mode hint: {hint(p)!r}"
+    eq(state(p)["count"], 0, "1× must not count")
+    for _ in range(5):
         p.keyboard.press("Space")
-    assert hint(p), "plan-done hint stays"
+    eq(hint(p), "5 times just one.", "hint every 5 reps")
+    p.reload()
+    assert p.evaluate("document.getElementById('app').classList.contains('one')"), "mode is remembered"
+    for _ in range(15):
+        p.keyboard.press("Space")
+    eq(state(p)["count"], 20, "count keeps going")
+    eq(hint(p), "20 times just one.", "no goal talk in this mode")
+    p.click("#one")
+    assert p.is_visible(".plan") and p.is_visible(".info"), "goal is back when the mode is off"
 
 
 @test("Offer of the other language ({0} browser on {1} page)")
@@ -523,6 +564,8 @@ def main():
             p = fresh(lang)
             hints(lang, p, p.context.request)
         hints_regular(fresh())
+        pause_hint(fresh())
+        one_mode(fresh())
         for browser_lang in ("en", "ru"):
             for page_lang in ("en", "ru"):
                 fresh()

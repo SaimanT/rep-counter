@@ -3,7 +3,8 @@
 UI = {
     "lang": "ru", "prefix": "ru/", "og_locale": "ru_RU", "currency": "RUB", "os": "Любая (браузер)",
     "home_name": "Счётчик повторений", "og_title_suffix": " онлайн", "app_label": "Счётчик",
-    "install": "Установить приложение", "sound": "Звук и вибрация", "fullscreen": "Полный экран",
+    "install": "Установить приложение", "one": "Режим «Только одно»: скрыть план и остаток",
+"sound": "Звук и вибрация", "fullscreen": "Полный экран",
     "plan": "План:",
     "info": 'Сделано <b id="done">0</b> из <b id="total">{plan}</b>\n    &nbsp;·&nbsp; '
             '<span class="left">осталось <b id="left">{plan}</b></span>',

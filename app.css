@@ -40,6 +40,14 @@ html, body { margin: 0; background: var(--bg); color: var(--fg);
   margin: 3vh 0; overflow: hidden; }
 .progress div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
 #app.finished .progress div { background: var(--done); }
+/* Room for two lines, so the buttons below don't jump when a hint appears */
+.hint { position: relative; z-index: 1; min-height: 2.7em; line-height: 1.3; margin: -1vh 0 1vh; display: flex; align-items: center;
+  justify-content: center; gap: 8px; padding: 0 8px; text-align: center; font-size: 17px; color: #b5bcc4;
+  opacity: 0; visibility: hidden; transition: opacity .4s, visibility .4s; }
+.hint.show { opacity: 1; visibility: visible; }
+.hint button { font: inherit; font-size: 18px; line-height: 1; color: #5c636c; background: none; border: 0;
+  padding: 4px 6px; cursor: pointer; }
+.hint button:hover { color: var(--fg); }
 .sets { font-size: 18px; color: var(--muted); min-height: 26px; text-align: center; }
 .controls { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center;
   gap: 10px; margin-top: 18px; }

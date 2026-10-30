@@ -47,6 +47,51 @@
     save();
   }
 
+  // ---- Hints: short lines at key moments of a workout. Built by script only, so
+  // they are not part of the page text that search engines index.
+  const HINTS_KEY = 'rep-counter-hints';
+  const isTouch = matchMedia('(hover: none)').matches;
+  const DONE_LINES = ['Сделано. Вы решили — и выполнили.', 'План выполнен. Это и есть сила воли.',
+    'Готово. Ещё одна маленькая победа.'];
+  let hintPrefs = { off: false, visits: 0 };
+  try { Object.assign(hintPrefs, JSON.parse(localStorage.getItem(HINTS_KEY)) || {}); } catch (e) {}
+  try {
+    if (!sessionStorage.getItem(HINTS_KEY)) { sessionStorage.setItem(HINTS_KEY, '1'); hintPrefs.visits++; }
+  } catch (e) {}
+  const saveHints = () => { try { localStorage.setItem(HINTS_KEY, JSON.stringify(hintPrefs)); } catch (e) {} };
+  saveHints();
+  // First few visits explain the idea; after that only the key moments remain
+  const newcomer = hintPrefs.visits <= 3;
+  const shown = new Set();
+  let doneLine = 0, hintTimer;
+
+  const hintBox = document.createElement('div');
+  hintBox.className = 'hint';
+  hintBox.setAttribute('aria-live', 'polite');
+  hintBox.innerHTML = '<span></span><button type="button" aria-label="Больше не показывать подсказки" title="Больше не показывать подсказки">×</button>';
+  document.querySelector('.progress').after(hintBox);
+  hintBox.querySelector('button').addEventListener('click', e => {
+    hintPrefs.off = true; saveHints(); hideHint(); e.currentTarget.blur();
+  });
+
+  function showHint(id, text, ms = 4500) {
+    if (hintPrefs.off || (id !== 'done' && shown.has(id))) return;
+    shown.add(id);
+    hintBox.querySelector('span').textContent = text;
+    hintBox.classList.add('show');
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(hideHint, ms);
+  }
+  function hideHint() { hintBox.classList.remove('show'); }
+
+  function hintForCount() {
+    const { count, plan } = state, left = plan - count;
+    if (count === plan) showHint('done', DONE_LINES[doneLine++ % DONE_LINES.length]);
+    else if (left === 3 && plan >= 8 && newcomer) showHint('left3', 'Осталось три. Финиш уже виден.');
+    else if (count === Math.ceil(plan / 2) && plan >= 6) showHint('half', 'Половина позади. Смотрите, как тает «осталось».');
+    else if (count === 1 && newcomer) showHint('first', 'Есть первое. Каждое нажатие — отметка прогресса.');
+  }
+
   function add(n) {
     state.count = Math.max(state.count + n, 0);
     if (n > 0) {
@@ -55,14 +100,18 @@
       vibrate(reached ? [80, 60, 80, 60, 200] : 25);
     }
     render(n > 0);
+    if (n > 0) hintForCount();
   }
 
   function finishSet() {
-    if (state.count > 0) { state.sets.push(state.count); state.count = 0; render(); }
+    if (state.count > 0) {
+      state.sets.push(state.count); state.count = 0; render();
+      if (newcomer) showHint('set', 'Подход записан. Внизу — ваш итог за тренировку.');
+    }
   }
 
   function reset() {
-    if (confirm('Сбросить счётчик и подходы?')) { state.count = 0; state.sets = []; render(); }
+    if (confirm('Сбросить счётчик и подходы?')) { state.count = 0; state.sets = []; render(); shown.clear(); hideHint(); }
   }
 
   function toggleFullscreen() {
@@ -98,7 +147,7 @@
   });
   // Tap/click on the counter screen (not on its controls) also counts
   app.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || e.target.closest('.plan, .top, .controls, a')) return;
+    if (e.button !== 0 || e.target.closest('.plan, .top, .controls, .hint button, a')) return;
     // First tap after editing the plan only closes the field, it doesn't count
     if (document.activeElement === planInput) { e.preventDefault(); planInput.blur(); return; }
     add(1);
@@ -131,4 +180,9 @@
   }
 
   render();
+  if (newcomer && state.count === 0 && !state.sets.length) {
+    showHint('intro', isTouch
+      ? 'Не считайте в уме — касайтесь экрана, а внимание — на технику.'
+      : 'Не считайте в уме — жмите пробел, а внимание — на технику.', 7000);
+  }
 })();

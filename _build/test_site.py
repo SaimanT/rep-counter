@@ -291,6 +291,12 @@ def offline(ctx):
 @test("Phone layout and buttons on {0[h1]}")
 def mobile(page, p):
     p.goto(url_of(page))
+    assert "касайтесь экрана" in hint(p), f"phone intro hint: {hint(p)!r}"
+    lines = p.evaluate("(() => { const s = document.querySelector('.hint span'); return Math.round(s.getBoundingClientRect().height / parseFloat(getComputedStyle(s).lineHeight)); })()")
+    assert lines <= 2, f"intro hint takes {lines} lines on a phone, buttons below would jump"
+    # position in the page, not the viewport: taps may scroll by a few pixels
+    page_y = "document.querySelector('.controls').getBoundingClientRect().y + scrollY"
+    controls_y = p.evaluate(page_y)
     overflow = p.evaluate("document.documentElement.scrollWidth - innerWidth")
     assert overflow <= 0, f"horizontal scroll by {overflow}px"
     assert not p.is_visible(".keys"), "keyboard hints should be hidden on touch screens"
@@ -311,6 +317,7 @@ def mobile(page, p):
     p.tap(".info")
     p.tap(".count")
     eq(state(p)["count"], 3, "taps count on phone")
+    eq(p.evaluate(page_y), controls_y, "buttons must not move when the hint changes")
 
     # every on-screen button is visible, big enough and above the hint line
     help_top = p.locator(".help").bounding_box()["y"]
@@ -345,6 +352,75 @@ def mobile(page, p):
     eq(state(p)["count"], 0, "control buttons must not count as reps")
 
 
+def hint(p):
+    return p.evaluate("""() => {
+        const h = document.querySelector('.hint');
+        return h && h.classList.contains('show') ? h.querySelector('span').textContent : '';
+    }""")
+
+
+@test("Workout hints")
+def hints(p, req):
+    home = url_of(PAGES[0])
+    html = req.get(home).text()
+    assert "Не держите счёт" not in html and 'class="hint"' not in html, "hints must not be in the page HTML (SEO)"
+    p.goto(home)
+    assert "жмите пробел" in hint(p), f"intro hint on first visit: {hint(p)!r}"
+    p.keyboard.press("Space")
+    assert "Есть первое" in hint(p), f"first-rep hint: {hint(p)!r}"
+    for _ in range(4):
+        p.keyboard.press("Space")
+    assert "Половина" in hint(p), f"half hint at 5 of 10: {hint(p)!r}"
+    for _ in range(2):
+        p.keyboard.press("Space")
+    assert "Осталось три" in hint(p), f"3-left hint at 7 of 10: {hint(p)!r}"
+    for _ in range(3):
+        p.keyboard.press("Space")
+    done = hint(p)
+    assert "Сделано" in done, f"plan-done hint: {done!r}"
+    p.keyboard.press("Enter")
+    assert "Подход записан" in hint(p), f"set hint: {hint(p)!r}"
+    for _ in range(5):
+        p.keyboard.press("Space")
+    assert "Половина" not in hint(p), "half hint must show once per workout"
+    for _ in range(5):
+        p.keyboard.press("Space")
+    assert hint(p) and hint(p) != done, f"plan-done hint repeats with a new line: {hint(p)!r}"
+    p.wait_for_function("!document.querySelector('.hint').classList.contains('show')", timeout=7000)
+
+    # ×: hides hints for good and does not count as a rep
+    p.once("dialog", lambda d: d.accept())
+    p.keyboard.press("r")
+    p.keyboard.press("Space")
+    before = state(p)["count"]
+    p.click(".hint button")
+    eq(state(p)["count"], before, "× must not count")
+    eq(hint(p), "", "× hides the hint")
+    p.reload()
+    for _ in range(10):
+        p.keyboard.press("Space")
+    eq(hint(p), "", "hints stay off after ×")
+
+
+@test("Hints get fewer after a few visits")
+def hints_regular(p):
+    p.goto(url_of(PAGES[0]))
+    p.evaluate("localStorage.setItem('rep-counter-hints', JSON.stringify({off: false, visits: 5}))")
+    p.reload()
+    eq(hint(p), "", "no intro for a regular visitor")
+    p.keyboard.press("Space")
+    eq(hint(p), "", "no first-rep hint for a regular visitor")
+    for _ in range(4):
+        p.keyboard.press("Space")
+    assert "Половина" in hint(p), "half hint stays"
+    for _ in range(2):
+        p.keyboard.press("Space")
+    assert "Осталось три" not in hint(p), "no 3-left hint for a regular visitor"
+    for _ in range(3):
+        p.keyboard.press("Space")
+    assert hint(p), "plan-done hint stays"
+
+
 def main():
     print(f"Testing {BASE}\n")
     with sync_playwright() as pw:
@@ -375,6 +451,13 @@ def main():
 
         ctx, p = fresh()
         persistence(p)
+        ctx.close()
+
+        ctx, p = fresh()
+        hints(p, ctx.request)
+        ctx.close()
+        ctx, p = fresh()
+        hints_regular(p)
         ctx.close()
 
         ctx = browser.new_context()

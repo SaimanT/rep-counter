@@ -3,6 +3,7 @@
 Run from anywhere:  python site/_build/build.py
 Folders starting with "_" are not published by GitHub Pages.
 """
+import hashlib
 import json
 from datetime import date
 from html import escape
@@ -274,7 +275,7 @@ TEMPLATE = """<!doctype html>
 <link rel="manifest" href="{root}manifest.webmanifest">
 <link rel="icon" href="{root}icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{root}icon-192.png">
-<link rel="stylesheet" href="{root}app.css">
+<link rel="stylesheet" href="{root}app.css?v={css_v}">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:url" content="{url}">
@@ -319,7 +320,7 @@ TEMPLATE = """<!doctype html>
 {more}
 </main>
 <footer><a href="{home}">Счётчик повторений</a> · бесплатно и без регистрации</footer>
-<script src="{root}app.js"></script>
+<script src="{root}app.js?v={js_v}"></script>
 </body>
 </html>
 """
@@ -364,6 +365,11 @@ def jsonld(page, url):
     return json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, indent=2)
 
 
+def version(name):
+    """Short content hash, so browsers fetch a fresh copy after every change."""
+    return hashlib.sha1((SITE / name).read_bytes()).hexdigest()[:8]
+
+
 def render(page):
     slug = page["slug"]
     root = "../" if slug else ""
@@ -374,7 +380,8 @@ def render(page):
     body = page["body"].replace("{how_to}", HOW_TO).replace("{links}", links_html(PAGES, root))
     return TEMPLATE.format(
         title=escape(page["title"]), description=escape(page["description"]), url=url,
-        verify=VERIFY, root=root, home=root or "./", base=BASE, h1=escape(page["h1"]), jsonld=jsonld(page, url),
+        verify=VERIFY, root=root, home=root or "./", base=BASE,
+        css_v=version("app.css"), js_v=version("app.js"), h1=escape(page["h1"]), jsonld=jsonld(page, url),
         slug=slug, plan=page["plan"], presets=presets, body=body, faq=faq, more=more,
     )
 

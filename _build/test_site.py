@@ -88,6 +88,8 @@ def seo(page, p):
     ld_questions = [q["name"] for q in faq["mainEntity"]]
     visible = p.locator("main h3").all_inner_texts()
     eq(ld_questions, visible, "FAQ in JSON-LD vs visible questions")
+    for sel, attr in (('link[rel="stylesheet"]', "href"), ('script[src*="app.js"]', "src")):
+        assert "?v=" in p.get_attribute(sel, attr), f"{sel} has no version, browsers may keep a stale copy"
     eq(p.input_value("#plan"), str(page["plan"]), "default plan")
     presets = [int(x) for x in p.locator(".presets button").all_inner_texts()]
     eq(presets, page["presets"], "preset buttons")
